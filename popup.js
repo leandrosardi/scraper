@@ -1,8 +1,13 @@
 'use strict';
 
+function changeBodyForTesting() {
+    alert('changeBodyForTesting');
+    document.body.innerHTML = 'Hello!';
+}
+
 postsSearchStart.onclick = function() {
-    alert('Hola');
-    chrome.tabs.update({url: 'https://linkedin.com'});
+    alert('Button Click');
+    chrome.tabs.update({url: 'https://www.amazon.com'});
 
     // fired when tab is updated
     chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
@@ -10,16 +15,15 @@ postsSearchStart.onclick = function() {
         if(changeInfo.status === 'complete') {
             // remove listener
             chrome.tabs.onUpdated.removeListener(openPage);
-            // get document title
-            chrome.tabs.get(tabID, function(tab) {
-                alert(tab.title);
-                // get document h1 with class 'main-heading
-                chrome.tabs.executeScript(tabID, {
-                    code: 'document.querySelector("h1.main-heading").innerText'
-                }, function(result) {
-                    alert(result);
-                });
-            });
+			// execute content script
+			chrome.scripting.executeScript(
+                {
+                    target: {tabId: tabID, allFrames: true},
+                    func: changeBodyForTesting
+                }, function() {
+                    alert('Script executed!');
+			    }
+            );
         }
     });
 };

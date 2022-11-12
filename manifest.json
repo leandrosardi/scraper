@@ -2,7 +2,7 @@
 	"name": "LinkedIn Scraper",
 	"description": "Simple Extension to Scrape LinkedIn Results, and Push Them to ConnectionSphere for Data Enrichment",
 	"version": "1.0",
-	"permissions": ["declarativeContent", "activeTab", "tabs", "downloads", "*://*/*"],
+	"permissions": ["scripting", "declarativeContent", "activeTab", "tabs", "downloads", "*://*/*"],
 	"manifest_version": 3,
 	"icons": {
 	  "48": "/48.png",

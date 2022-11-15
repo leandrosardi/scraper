@@ -3,6 +3,7 @@
 	"description": "Simple Extension to Scrape LinkedIn Results, and Push Them to ConnectionSphere for Data Enrichment",
 	"version": "1.0",
 	"permissions": ["scripting", "declarativeContent", "activeTab", "tabs", "downloads", "*://*/*"],
+	"host_permissions": [ "https://www.amazon.com/*" ],
 	"manifest_version": 3,
 	"icons": {
 	  "48": "/48.png",

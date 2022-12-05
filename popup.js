@@ -1,40 +1,35 @@
-'use strict';
+//'use strict';
 
-function changeBodyForTesting() {
-    alert('changeBodyForTesting');
-    document.body.innerHTML = '...';
-    // do an ajax call to https://connectionsphere.com/api1.0/emails/verify.json?email=leandro.sardi@expandedventure.com, and get the response
-    // if response is 200, then change the body to 'Verified'
-    // if response is 400, then change the body to 'Not Verified'
-    /*
-    const xhttp = new XMLHttpRequest();
-    xhttp.onload = function() {
-        document.body.innerHTML = 'Hello!';
-    }
-    xhttp.open("GET", "https://connectionsphere.com/api1.0/emails/verify.json", true);
-    xhttp.send();
-    */
-    let apiCall = 'https://connectionsphere.com/api1.0/emails/verify.json?email=leandro.sardi@expandedventure.com';
+let email = document.getElementById('email');
+let password = document.getElementById('password');
+
+function do_login(email,password) {
+    let apiCall = 'https://127.0.0.1/api1.0/emails/verify.json?email=leandro.sardi@expandedventure.com';
     fetch(apiCall).then(function(res) {
         // wait for resonse
         if (res.status !== 200) {
-            document.body.innerHTML = 'Error!';
+            document.body.innerHTML = 'Protocol Error';
             return;
         }
         res.json().then(function(data) {
             // show the response
-            document.body.innerHTML = data;
+            document.body.innerHTML = 'Res:'+data.status;
         });
     }).catch(function(err) {
         // error
-        document.body.innerHTML = err;
+        //
+        // If you are working on DEV, probably you are getting this error because your SSL cerificate is not tusted.
+        // In this case, go to https://127.0.0.1/ on other tab of the same browser, and choose to trust the certificate.
+        // After that, you can go back to this tab and try again.
+        // 
+        document.body.innerHTML = 'Error:'+err;
     });
 }
 
-postsSearchStart.onclick = function() {
-    alert('Button Click');
+login.onclick = function() {
+document.body.innerHTML = email.value;
+    // go to the page
     chrome.tabs.update({url: 'https://www.amazon.com'});
-
     // fired when tab is updated
     chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
         // tab has finished loading
@@ -45,7 +40,9 @@ postsSearchStart.onclick = function() {
 			chrome.scripting.executeScript(
                 {
                     target: {tabId: tabID, allFrames: true},
-                    func: changeBodyForTesting
+                    //code: 'e="123";',
+                    args: [ email.value, password.value ],
+                    func: do_login
                 }, function() {
                     alert('Script executed!');
 			    }

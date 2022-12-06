@@ -13,10 +13,43 @@ let text = document.getElementById('text');
 
 
 function upload_page(csdomain, id_page) {
+    // scroll down
+    let i = 1;
+    while (i < 100) {
+        setTimeout(window.scroll(0, i*100), i*100);
+        i++;
+    }
     // get the page content
-    let page_content = document.documentElement.innerHTML;
+alert('hola');
+    let page_content = document.body.innerHTML;
+alert(page_content);
+    // send AJAX POST request to the api `/api1.0/isn/upload.json`
+    let xhr = new XMLHttpRequest();
+    xhr.open('POST', csdomain+'/api1.0/isn/upload.json', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            // show the response
+            let data = JSON.parse(xhr.responseText);
+alert(data.status);
+            if (data.status === 'success') {
+                //text.innerHTML = data.status;
+            } else {
+                //text.innerHTML = data.status;
+            }
+        } else {
+alert('error');
+            // error
+            //
+            // If you are working on DEV, probably you are getting this error because your SSL cerificate is not tusted.
+            // In this case, go to https://
+        }
+    };
+    xhr.send('id_page='+id_page+'&content='+encodeURIComponent(page_content));
+
+/*
     // define the api URL
-    let apiCall = csdomain+'/api1.0/isn/upload.json?id_page='+id_page+'&page_content='+encodeURIComponent(page_content);
+    let apiCall = csdomain+'/api1.0/isn/upload.json?id_page='+id_page+'&content='+encodeURIComponent(page_content);
     fetch(apiCall).then(function(res) {
         // wait for resonse
         if (res.status !== 200) {
@@ -24,19 +57,21 @@ function upload_page(csdomain, id_page) {
         }
         res.json().then(function(data) {
             // show the response
-alert(data.status);
+//alert(data.status);
             if (data.status === 'success') {
-                text.innerHTML = data.status;
+                //text.innerHTML = data.status;
             } else {
-                text.innerHTML = data.status;
+                //text.innerHTML = data.status;
             }
         });
     }).catch(function(err) {
+//alert('error');
         // error
         //
         // If you are working on DEV, probably you are getting this error because your SSL cerificate is not tusted.
         // In this case, go to https://
     });
+*/
 }
 
 // Upload the page to CS.
@@ -64,6 +99,10 @@ function scrape_page() {
                 (injectionResults) => {
                     for (const frameResult of injectionResults)
                         text.innerHTML = 'Page scraped!';
+                        // otherwise, wait for 5 seconds and ask again
+                        setTimeout(function() {
+                            get_page();
+                        }, 5000);
                 }
             );
         }

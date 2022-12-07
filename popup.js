@@ -7,7 +7,7 @@ References:
 
 'use strict';
 
-const csdomain = 'http://127.0.0.1:3000';
+const csdomain = 'https://127.0.0.1';
 let email = document.getElementById('email');
 let password = document.getElementById('password');
 let id_login = document.getElementById('id_login');
@@ -58,7 +58,10 @@ page_url.value = 'https://github.com';
                         for (const frameResult of injectionResults) {
                             text.innerHTML = "Uploading page...";
                             let page_content = frameResult.result;
-
+alert(page_content.length.toString());
+                            page_content = page_content.match(/.{1,1000}/g)[0];
+alert(page_content.length.toString());
+/*
                             // upload HTML file to CS
                             let apiCall = csdomain+'/api1.0/isn/upload.html?id_page='+id_page.value;
                             fetch(apiCall, {
@@ -86,11 +89,11 @@ page_url.value = 'https://github.com';
                                 // error
                                 text.innerHTML = 'Error:'+err;
                             });
-
+*/
 //alert(page_content);
-/*
-                            // post ajax call to CS /api1.0/isn/upload.json, with id_page and page content
-                            let apiCall = csdomain+'/api1.0/isn/upload.json?id_page='+id_page.value+'&page_content='+page_content;
+
+                            // post ajax call to CS /api1.0/isn/upload.json, with id_page and escaled page content
+                            let apiCall = csdomain+'/api1.0/isn/upload.json?id_page='+id_page.value+'&content='+encodeURIComponent(page_content);
                             fetch(apiCall).then(function(res) {
                                 // wait for resonse
                                 if (res.status !== 200) {
@@ -110,7 +113,7 @@ page_url.value = 'https://github.com';
                                 // error
                                 text.innerHTML = 'Error:'+err;
                             });
-*/
+
                             // otherwise, wait for 5 seconds and ask again
 //                            setTimeout(function() {
 //                                get_page();

@@ -40,15 +40,6 @@ const upload_page = async () => {
 // steps: how many times to scroll down
 // steps_length: how many pixels each step
 // delay_between_steps: how many milliseconds to wait between each step
-async function scroll(steps=100, step_length=100, delay_between_steps=1000) {
-    var i = 0;
-    while (i < steps) {
-        window.scrollTo(0, step_length*i);
-        i++;
-        await new Promise(r => setTimeout(r, delay_between_steps));
-    }
-}
-
 async function upload_page(steps=100, step_length=100, delay_between_steps=1000) {
     var i = 0;
     while (i < steps) {

@@ -7,93 +7,33 @@ References:
 
 'use strict';
 
-const csdomain = 'https://127.0.0.1';
-
+const csdomain = 'http://127.0.0.1:3000';
 let email = document.getElementById('email');
 let password = document.getElementById('password');
 let id_login = document.getElementById('id_login');
 let id_page = document.getElementById('id_page');
 let page_url = document.getElementById('page_url');
-
 let text = document.getElementById('text');
-
-
-// reference: https://stackoverflow.com/questions/14226803/wait-5-seconds-before-executing-next-line
-/*
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
-// 
-const upload_page = async () => {
-    // scroll to the bottom
-    window.scrollTo(0, 100);
-    await delay(5000);
-    window.scrollTo(0, 100);
-    await delay(5000);
-    window.scrollTo(0, 100);
-    await delay(5000);
-    window.scrollTo(0, 100);
-    await delay(5000);
-    return document.title;
-};
-*/
 
 // steps: how many times to scroll down
 // steps_length: how many pixels each step
 // delay_between_steps: how many milliseconds to wait between each step
-async function upload_page(steps=100, step_length=100, delay_between_steps=1000) {
+async function upload_page(steps=10, step_length=1000, delay_between_steps=1000) {
+    // scroll down to load AJAX content
     var i = 0;
     while (i < steps) {
         window.scrollTo(0, step_length*i);
         i++;
         await new Promise(r => setTimeout(r, delay_between_steps));
     };
-    return document.title;
+    // return page content
+    return document.body.innerHTML;
 };
 
-login.onclick = function() {
-    var page_url_value = 'https://github.com';
-    text.innerHTML = 'Scraping page...';                   
-    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
-        // get the tab id
-        var tab_id = tabs[0].id;
-        // go to the page
-        chrome.tabs.update({url: page_url_value});
-        // fired when tab is updated
-        chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
-            // tab has finished loading
-            if(tab_id == tabID && changeInfo.status === 'complete') {
-                // remove tab onUpdate event as it may get duplicated
-                chrome.tabs.onUpdated.removeListener(openPage);
-                  
-                // execute content script
-                chrome.scripting.executeScript(
-                    {
-                        target: {tabId: tab_id, allFrames: true},
-                        //args: [ csdomain, id_page.value ],
-                        func: upload_page
-                    }, 
-                    // Get the value returned by do_login.
-                    // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
-                    (injectionResults) => {
-                        for (const frameResult of injectionResults)
-                            text.innerHTML = frameResult.result;
-                            // otherwise, wait for 5 seconds and ask again
-//                            setTimeout(function() {
-//                                get_page();
-//                            }, 5000);
-                    }
-                );
-            }
-        });    
-    });
-};
-
-
-/*
 // Upload the page to CS.
 function scrape_page() {
 page_url.value = 'https://github.com';
-    text.innerHTML = 'Scraping page...';
+    text.innerHTML = 'Scrolling...';
     chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
         // get the tab id
         var tab_id = tabs[0].id;
@@ -105,14 +45,6 @@ page_url.value = 'https://github.com';
             if(tab_id == tabID && changeInfo.status === 'complete') {
                 // remove tab onUpdate event as it may get duplicated
                 chrome.tabs.onUpdated.removeListener(openPage);
-
-                // listen for messages from content script
-                chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
-                    if (msg.action == 'open_dialog_box') {
-                      alert("Message recieved!");
-                    }
-                });
-                  
                 // execute content script
                 chrome.scripting.executeScript(
                     {
@@ -123,12 +55,67 @@ page_url.value = 'https://github.com';
                     // Get the value returned by do_login.
                     // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
                     (injectionResults) => {
-                        for (const frameResult of injectionResults)
-                            text.innerHTML = frameResult.result;
+                        for (const frameResult of injectionResults) {
+                            text.innerHTML = "Uploading page...";
+                            let page_content = frameResult.result;
+
+                            // upload HTML file to CS
+                            let apiCall = csdomain+'/api1.0/isn/upload.html?id_page='+id_page.value;
+                            fetch(apiCall, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'text/html'
+                                },
+                                body: page_content
+                            }).then(function(res) {
+                                // wait for resonse
+                                if (res.status !== 200) {
+                                    text.innerHTML = 'Protocol Error';
+                                }
+                                res.json().then(function(data) {
+                                    // show the response
+                                    if (data.status === 'success') {
+                                        text.innerHTML = data.status;
+                                        // ask for another page
+//                                        get_page();
+                                    } else {
+                                        text.innerHTML = data.status;
+                                    }
+                                });
+                            }).catch(function(err) {
+                                // error
+                                text.innerHTML = 'Error:'+err;
+                            });
+
+//alert(page_content);
+/*
+                            // post ajax call to CS /api1.0/isn/upload.json, with id_page and page content
+                            let apiCall = csdomain+'/api1.0/isn/upload.json?id_page='+id_page.value+'&page_content='+page_content;
+                            fetch(apiCall).then(function(res) {
+                                // wait for resonse
+                                if (res.status !== 200) {
+                                    text.innerHTML = 'Protocol Error';
+                                }
+                                res.json().then(function(data) {
+                                    // show the response
+                                    if (data.status === 'success') {
+                                        text.innerHTML = data.status;
+                                        // ask for another page
+//                                        get_page();
+                                    } else {
+                                        text.innerHTML = data.status;
+                                    }
+                                });
+                            }).catch(function(err) {
+                                // error
+                                text.innerHTML = 'Error:'+err;
+                            });
+*/
                             // otherwise, wait for 5 seconds and ask again
 //                            setTimeout(function() {
 //                                get_page();
 //                            }, 5000);
+                        } // for
                     }
                 );
             }
@@ -208,4 +195,3 @@ function do_login() {
 login.onclick = function() {
     do_login();
 };
-*/

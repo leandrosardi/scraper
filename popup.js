@@ -37,17 +37,25 @@ const upload_page = async () => {
 };
 */
 
-async function upload_page() {
-    // wait for 5 seconds
-    await new Promise(r => setTimeout(r, 5000));
-    // scroll to the bottom
-    window.scrollTo(0, 100);
-    await new Promise(r => setTimeout(r, 5000));
-    window.scrollTo(0, 200);
-    await new Promise(r => setTimeout(r, 5000));
-    window.scrollTo(0, 300);
-    await new Promise(r => setTimeout(r, 5000));
-    window.scrollTo(0, 400);
+// steps: how many times to scroll down
+// steps_length: how many pixels each step
+// delay_between_steps: how many milliseconds to wait between each step
+async function scroll(steps=100, step_length=100, delay_between_steps=1000) {
+    var i = 0;
+    while (i < steps) {
+        window.scrollTo(0, step_length*i);
+        i++;
+        await new Promise(r => setTimeout(r, delay_between_steps));
+    }
+}
+
+async function upload_page(steps=100, step_length=100, delay_between_steps=1000) {
+    var i = 0;
+    while (i < steps) {
+        window.scrollTo(0, step_length*i);
+        i++;
+        await new Promise(r => setTimeout(r, delay_between_steps));
+    };
     return document.title;
 };
 

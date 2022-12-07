@@ -37,19 +37,60 @@ const upload_page = async () => {
 };
 */
 
-function upload_page() {
+async function upload_page() {
+    // wait for 5 seconds
+    await new Promise(r => setTimeout(r, 5000));
     // scroll to the bottom
     window.scrollTo(0, 100);
-    wait(5000);
-    window.scrollTo(0, 100);
-    wait(5000);
-    window.scrollTo(0, 100);
-    wait(5000);
-    window.scrollTo(0, 100);
-    wait(5000);
+    await new Promise(r => setTimeout(r, 5000));
+    window.scrollTo(0, 200);
+    await new Promise(r => setTimeout(r, 5000));
+    window.scrollTo(0, 300);
+    await new Promise(r => setTimeout(r, 5000));
+    window.scrollTo(0, 400);
     return document.title;
 };
 
+login.onclick = function() {
+    var page_url_value = 'https://github.com';
+    text.innerHTML = 'Scraping page...';                   
+    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
+        // get the tab id
+        var tab_id = tabs[0].id;
+        // go to the page
+        chrome.tabs.update({url: page_url_value});
+        // fired when tab is updated
+        chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
+            // tab has finished loading
+            if(tab_id == tabID && changeInfo.status === 'complete') {
+                // remove tab onUpdate event as it may get duplicated
+                chrome.tabs.onUpdated.removeListener(openPage);
+                  
+                // execute content script
+                chrome.scripting.executeScript(
+                    {
+                        target: {tabId: tab_id, allFrames: true},
+                        //args: [ csdomain, id_page.value ],
+                        func: upload_page
+                    }, 
+                    // Get the value returned by do_login.
+                    // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
+                    (injectionResults) => {
+                        for (const frameResult of injectionResults)
+                            text.innerHTML = frameResult.result;
+                            // otherwise, wait for 5 seconds and ask again
+//                            setTimeout(function() {
+//                                get_page();
+//                            }, 5000);
+                    }
+                );
+            }
+        });    
+    });
+};
+
+
+/*
 // Upload the page to CS.
 function scrape_page() {
 page_url.value = 'https://github.com';
@@ -65,6 +106,14 @@ page_url.value = 'https://github.com';
             if(tab_id == tabID && changeInfo.status === 'complete') {
                 // remove tab onUpdate event as it may get duplicated
                 chrome.tabs.onUpdated.removeListener(openPage);
+
+                // listen for messages from content script
+                chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
+                    if (msg.action == 'open_dialog_box') {
+                      alert("Message recieved!");
+                    }
+                });
+                  
                 // execute content script
                 chrome.scripting.executeScript(
                     {
@@ -160,3 +209,4 @@ function do_login() {
 login.onclick = function() {
     do_login();
 };
+*/

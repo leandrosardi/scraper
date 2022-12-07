@@ -1,118 +1,104 @@
+/*
+References: 
+- https://usefulangle.com/post/339/chrome-extension-create-page-scraper
+- https://stackoverflow.com/questions/19758028/chrome-extension-get-dom-content
+- https://developer.chrome.com/docs/extensions/reference/index.html
+*/
+
 'use strict';
 
+/*
 const csdomain = 'https://127.0.0.1';
-
 let email = document.getElementById('email');
 let password = document.getElementById('password');
-
 let id_login = document.getElementById('id_login');
 let id_page = document.getElementById('id_page');
 let page_url = document.getElementById('page_url');
+*/
 
 let text = document.getElementById('text');
 
-
-function upload_page(csdomain, id_page) {
-    // scroll down
-    let i = 1;
-    while (i < 100) {
-        setTimeout(window.scroll(0, i*100), i*100);
-        i++;
-    }
-    // get the page content
-alert('hola');
-    let page_content = document.body.innerHTML;
-alert(page_content);
-    // send AJAX POST request to the api `/api1.0/isn/upload.json`
-    let xhr = new XMLHttpRequest();
-    xhr.open('POST', csdomain+'/api1.0/isn/upload.json', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            // show the response
-            let data = JSON.parse(xhr.responseText);
-alert(data.status);
-            if (data.status === 'success') {
-                //text.innerHTML = data.status;
-            } else {
-                //text.innerHTML = data.status;
-            }
-        } else {
-alert('error');
-            // error
-            //
-            // If you are working on DEV, probably you are getting this error because your SSL cerificate is not tusted.
-            // In this case, go to https://
-        }
-    };
-    xhr.send('id_page='+id_page+'&content='+encodeURIComponent(page_content));
-
-/*
-    // define the api URL
-    let apiCall = csdomain+'/api1.0/isn/upload.json?id_page='+id_page+'&content='+encodeURIComponent(page_content);
-    fetch(apiCall).then(function(res) {
-        // wait for resonse
-        if (res.status !== 200) {
-            text.innerHTML = 'Protocol Error';
-        }
-        res.json().then(function(data) {
-            // show the response
-//alert(data.status);
-            if (data.status === 'success') {
-                //text.innerHTML = data.status;
-            } else {
-                //text.innerHTML = data.status;
-            }
-        });
-    }).catch(function(err) {
-//alert('error');
-        // error
-        //
-        // If you are working on DEV, probably you are getting this error because your SSL cerificate is not tusted.
-        // In this case, go to https://
-    });
-*/
+function upload_page() {
+//alert('b');
+    document.body.innerHTML = 'hola';
+    return document.title;
 }
 
+start.onclick = function() {
+    let page_url_value = 'https://github.com/';
+//alert('a');
+    text.innerHTML = 'Scraping page...';
+    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
+        // get the tab id
+        var tab_id = tabs[0].id;
+        // go to the page
+        chrome.tabs.update({url: page_url_value});
+        // fired when tab is updated
+        chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
+            // tab has finished loading
+            if(tab_id == tabID && changeInfo.status === 'complete') {
+                // remove tab onUpdate event as it may get duplicated
+                chrome.tabs.onUpdated.removeListener(openPage);
+                // execute content script
+                chrome.scripting.executeScript(
+                    {
+                        target: {tabId: tab_id, allFrames: true},
+                        func: upload_page
+                    }, 
+                    // Get the value returned by do_login.
+                    // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
+                    (injectionResults) => {
+                        for (const frameResult of injectionResults)
+                            text.innerHTML = frameResult.result;
+                    }
+                );
+            }
+        });    
+    });
+};
+
+/*
 // Upload the page to CS.
 function scrape_page() {
     text.innerHTML = 'Scraping page...';
-
-    // go to the page
-    chrome.tabs.update({url: page_url.value});
-    // fired when tab is updated
-    chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
-        // tab has finished loading
-        if(changeInfo.status === 'complete') {
-            // remove listener
-            chrome.tabs.onUpdated.removeListener(openPage);
-			// execute content script
-            chrome.scripting.executeScript(
-                {
-                    target: {tabId: tabID, allFrames: true},
-                    //code: 'e="123";',
-                    args: [ csdomain, id_page.value ],
-                    func: upload_page
-                }, 
-                // Get the value returned by do_login.
-                // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
-                (injectionResults) => {
-                    for (const frameResult of injectionResults)
-                        text.innerHTML = 'Page scraped!';
-                        // otherwise, wait for 5 seconds and ask again
-                        setTimeout(function() {
-                            get_page();
-                        }, 5000);
-                }
-            );
-        }
+    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
+        // get the tab id
+        var tab_id = tabs[0].id;
+        // go to the page
+        chrome.tabs.update({url: page_url.value});
+        // fired when tab is updated
+        chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
+            // tab has finished loading
+            if(tab_id == tabID && changeInfo.status === 'complete') {
+                // remove tab onUpdate event as it may get duplicated
+                chrome.tabs.onUpdated.removeListener(openPage);
+                // execute content script
+                chrome.scripting.executeScript(
+                    {
+                        target: {tabId: tab_id, allFrames: true},
+                        //args: [ csdomain, id_page.value ],
+                        func: upload_page
+                    }, 
+                    // Get the value returned by do_login.
+                    // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
+                    (injectionResults) => {
+                        for (const frameResult of injectionResults)
+                            text.innerHTML = 'Scraped!'; //+frameResult.result;
+                            // otherwise, wait for 5 seconds and ask again
+                            setTimeout(function() {
+                                get_page();
+                            }, 5000);
+                    }
+                );
+            }
+        });    
     });
 }
 
 // Ask CS for a page to scrape.
 function get_page() {
     // show loading status
-    text.innerHTML = 'Getting page to scrape...';
+    text.innerHTML = 'Getting page to scrape...' //+ chrome.tabs.length.toString();
     // define the api URL
     let apiCall = csdomain+'/api1.0/isn/get.json?id_login='+id_login.value
     fetch(apiCall).then(function(res) {
@@ -149,7 +135,7 @@ function get_page() {
 // Login to CS
 function do_login() { 
     // show logging in caption
-    text.innerHTML = 'Logging in...';
+    text.innerHTML = 'Logging in.....';
     // define the api URL
     let apiCall = csdomain+'/api1.0/isn/login.json?email='+email.value+'&password='+password.value;
     fetch(apiCall).then(function(res) {
@@ -176,9 +162,9 @@ function do_login() {
         // 
         text.innerHTML = 'Error:'+err;
     });
-
 }
 
 login.onclick = function() {
     do_login();
 };
+*/

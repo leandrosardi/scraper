@@ -3,7 +3,7 @@
 	"description": "Simple Extension to Scrape Websites, and Push Them to ConnectionSphere for Data Enrichment",
 	"version": "2.0",
 	"permissions": ["storage", "webRequest", "scripting", "declarativeContent", "activeTab", "tabs", "downloads", "*://*/*", "http://connectionsphere.com:80/*", "http://connectionsphere.com/api1.0/emails/verify.json"],
-	"host_permissions": [ "https://www.amazon.com/*", "https://connectionsphere.com/*", "https://github.com/*" ],
+	"host_permissions": [ "https://www.amazon.com/*", "https://connectionsphere.com/*", "https://github.com/*", "https://linkedin.com/*" ],
 	"manifest_version": 3,
 	"icons": {
 	  "48": "/48.png",

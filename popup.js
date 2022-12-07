@@ -7,59 +7,52 @@ References:
 
 'use strict';
 
-/*
 const csdomain = 'https://127.0.0.1';
+
 let email = document.getElementById('email');
 let password = document.getElementById('password');
 let id_login = document.getElementById('id_login');
 let id_page = document.getElementById('id_page');
 let page_url = document.getElementById('page_url');
-*/
 
 let text = document.getElementById('text');
 
-function upload_page() {
-//alert('b');
-    document.body.innerHTML = 'hola';
-    return document.title;
-}
 
-start.onclick = function() {
-    let page_url_value = 'https://github.com/';
-//alert('a');
-    text.innerHTML = 'Scraping page...';
-    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
-        // get the tab id
-        var tab_id = tabs[0].id;
-        // go to the page
-        chrome.tabs.update({url: page_url_value});
-        // fired when tab is updated
-        chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
-            // tab has finished loading
-            if(tab_id == tabID && changeInfo.status === 'complete') {
-                // remove tab onUpdate event as it may get duplicated
-                chrome.tabs.onUpdated.removeListener(openPage);
-                // execute content script
-                chrome.scripting.executeScript(
-                    {
-                        target: {tabId: tab_id, allFrames: true},
-                        func: upload_page
-                    }, 
-                    // Get the value returned by do_login.
-                    // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
-                    (injectionResults) => {
-                        for (const frameResult of injectionResults)
-                            text.innerHTML = frameResult.result;
-                    }
-                );
-            }
-        });    
-    });
+// reference: https://stackoverflow.com/questions/14226803/wait-5-seconds-before-executing-next-line
+/*
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+// 
+const upload_page = async () => {
+    // scroll to the bottom
+    window.scrollTo(0, 100);
+    await delay(5000);
+    window.scrollTo(0, 100);
+    await delay(5000);
+    window.scrollTo(0, 100);
+    await delay(5000);
+    window.scrollTo(0, 100);
+    await delay(5000);
+    return document.title;
+};
+*/
+
+function upload_page() {
+    // scroll to the bottom
+    window.scrollTo(0, 100);
+    wait(5000);
+    window.scrollTo(0, 100);
+    wait(5000);
+    window.scrollTo(0, 100);
+    wait(5000);
+    window.scrollTo(0, 100);
+    wait(5000);
+    return document.title;
 };
 
-/*
 // Upload the page to CS.
 function scrape_page() {
+page_url.value = 'https://github.com';
     text.innerHTML = 'Scraping page...';
     chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
         // get the tab id
@@ -83,11 +76,11 @@ function scrape_page() {
                     // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
                     (injectionResults) => {
                         for (const frameResult of injectionResults)
-                            text.innerHTML = 'Scraped!'; //+frameResult.result;
+                            text.innerHTML = frameResult.result;
                             // otherwise, wait for 5 seconds and ask again
-                            setTimeout(function() {
-                                get_page();
-                            }, 5000);
+//                            setTimeout(function() {
+//                                get_page();
+//                            }, 5000);
                     }
                 );
             }
@@ -167,4 +160,3 @@ function do_login() {
 login.onclick = function() {
     do_login();
 };
-*/

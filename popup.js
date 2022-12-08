@@ -1,8 +1,10 @@
 /*
-References: 
+References about Chrome Extensions:
 - https://usefulangle.com/post/339/chrome-extension-create-page-scraper
 - https://stackoverflow.com/questions/19758028/chrome-extension-get-dom-content
 - https://developer.chrome.com/docs/extensions/reference/index.html
+Refernces about Upload files with AJAX:
+- https://pqina.nl/blog/set-value-to-file-input/
 */
 
 'use strict';
@@ -59,6 +61,12 @@ page_url.value = 'https://github.com';
                         for (const frameResult of injectionResults) {
                             let page_content = frameResult.result;
 
+                            // cap to 5MB max because the CORS policy
+                            let maxsize = 1*1024*1024-1;
+                            if (page_content.length > maxsize) {
+                                page_content = page_content.substring(0, maxsize);
+                            }
+
                             /*
                             text.innerHTML = "Saving page...";
                             // save the HTML page in the download folder
@@ -69,6 +77,7 @@ page_url.value = 'https://github.com';
                            
                             text.innerHTML = "Uploading page...";
                             let fileInput = document.getElementById('file');
+                            let fileForm = document.getElementById('upload_file');
                             let myFile = new File([page_content], 'hello.html', {
                                 type: 'text/plain',
                                 lastModified: new Date(),
@@ -76,8 +85,30 @@ page_url.value = 'https://github.com';
                             let dataTransfer = new DataTransfer();
                             dataTransfer.items.add(myFile);
                             fileInput.files = dataTransfer.files;
-                            // 
-                            text.innerHTML = "Done!";
+
+                            let formData = new FormData(fileForm);
+                            $.ajax({
+                                method:"POST",
+                                url: "https://127.0.0.1/api1.0/isn/upload.json",
+                                data: formData,
+                                cache: false,
+                                contentType: false,
+                                processData: false,
+                                    beforeSend: function(){
+                                        //$('button[type="submit"]').attr('disabled','disabled');
+                                },
+                                success: function(data){
+                                    //$('button[type="submit"]').removeAttr('disabled');
+                                    let response = JSON.parse(data);
+                                    text.innerHTML = response.status;
+                                },
+                                error: function(data){
+                                    //$('button[type="submit"]').removeAttr('disabled');
+                                    let response = JSON.parse(data);
+                                    text.innerHTML = response.status;
+                                }
+                            });
+                                                    
                             // otherwise, wait for 5 seconds and ask again
 //                            setTimeout(function() {
 //                                get_page();

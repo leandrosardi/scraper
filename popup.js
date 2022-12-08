@@ -9,7 +9,7 @@ Refernces about Upload files with AJAX:
 
 'use strict';
 
-const csdomain = 'https://127.0.0.1';
+const csdomain = 'http://127.0.0.1:3000';
 let email = document.getElementById('email');
 let password = document.getElementById('password');
 let id_login = document.getElementById('id_login');
@@ -62,10 +62,10 @@ page_url.value = 'https://github.com';
                             let page_content = frameResult.result;
 
                             // cap to 5MB max because the CORS policy
-                            let maxsize = 1*1024*1024-1;
-                            if (page_content.length > maxsize) {
-                                page_content = page_content.substring(0, maxsize);
-                            }
+                            //let maxsize = 1*1024*1024;
+                            //if (page_content.length > maxsize) {
+                            //    page_content = page_content.substring(0, maxsize);
+                            //}
 
                             /*
                             text.innerHTML = "Saving page...";
@@ -89,7 +89,7 @@ page_url.value = 'https://github.com';
                             let formData = new FormData(fileForm);
                             $.ajax({
                                 method:"POST",
-                                url: "https://127.0.0.1/api1.0/isn/upload.json",
+                                url: csdomain+"/api1.0/isn/upload.json",
                                 data: formData,
                                 cache: false,
                                 contentType: false,

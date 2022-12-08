@@ -33,7 +33,7 @@ async function upload_page(steps=10, step_length=1000, delay_between_steps=1000)
 // Upload the page to CS.
 function scrape_page() {
 page_url.value = 'https://github.com';
-    text.innerHTML = 'Scrolling...';
+    text.innerHTML = 'Going to page...';
     chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
         // get the tab id
         var tab_id = tabs[0].id;
@@ -43,6 +43,7 @@ page_url.value = 'https://github.com';
         chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
             // tab has finished loading
             if(tab_id == tabID && changeInfo.status === 'complete') {
+                text.innerHTML = 'Scrolling...';
                 // remove tab onUpdate event as it may get duplicated
                 chrome.tabs.onUpdated.removeListener(openPage);
                 // execute content script
@@ -56,69 +57,32 @@ page_url.value = 'https://github.com';
                     // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
                     (injectionResults) => {
                         for (const frameResult of injectionResults) {
-                            text.innerHTML = "Uploading page...";
                             let page_content = frameResult.result;
-alert(page_content.length.toString());
-                            page_content = page_content.match(/.{1,1000}/g)[0];
-alert(page_content.length.toString());
-/*
-                            // upload HTML file to CS
-                            let apiCall = csdomain+'/api1.0/isn/upload.html?id_page='+id_page.value;
-                            fetch(apiCall, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'text/html'
-                                },
-                                body: page_content
-                            }).then(function(res) {
-                                // wait for resonse
-                                if (res.status !== 200) {
-                                    text.innerHTML = 'Protocol Error';
-                                }
-                                res.json().then(function(data) {
-                                    // show the response
-                                    if (data.status === 'success') {
-                                        text.innerHTML = data.status;
-                                        // ask for another page
-//                                        get_page();
-                                    } else {
-                                        text.innerHTML = data.status;
-                                    }
-                                });
-                            }).catch(function(err) {
-                                // error
-                                text.innerHTML = 'Error:'+err;
-                            });
-*/
-//alert(page_content);
 
-                            // post ajax call to CS /api1.0/isn/upload.json, with id_page and escaled page content
-                            let apiCall = csdomain+'/api1.0/isn/upload.json?id_page='+id_page.value+'&content='+encodeURIComponent(page_content);
-                            fetch(apiCall).then(function(res) {
-                                // wait for resonse
-                                if (res.status !== 200) {
-                                    text.innerHTML = 'Protocol Error';
-                                }
-                                res.json().then(function(data) {
-                                    // show the response
-                                    if (data.status === 'success') {
-                                        text.innerHTML = data.status;
-                                        // ask for another page
-//                                        get_page();
-                                    } else {
-                                        text.innerHTML = data.status;
-                                    }
-                                });
-                            }).catch(function(err) {
-                                // error
-                                text.innerHTML = 'Error:'+err;
+                            /*
+                            text.innerHTML = "Saving page...";
+                            // save the HTML page in the download folder
+                            let blob = new Blob([page_content], {type: "application/html;charset=utf-8"});
+                            let objectURL = URL.createObjectURL(blob);
+                            chrome.downloads.download({ url: objectURL, filename: ('linkedin-scraper/data.html'), conflictAction: 'overwrite' });
+                            */
+                           
+                            text.innerHTML = "Uploading page...";
+                            let fileInput = document.getElementById('file');
+                            let myFile = new File([page_content], 'hello.html', {
+                                type: 'text/plain',
+                                lastModified: new Date(),
                             });
-
+                            let dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(myFile);
+                            fileInput.files = dataTransfer.files;
+                            // 
+                            text.innerHTML = "Done!";
                             // otherwise, wait for 5 seconds and ask again
 //                            setTimeout(function() {
 //                                get_page();
 //                            }, 5000);
-                        } // for
+                        } // for (const frameResult of injectionResults)
                     }
                 );
             }

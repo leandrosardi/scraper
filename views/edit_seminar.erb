@@ -1,0 +1,146 @@
+<%
+sid = params[:sid].to_s
+s = BlackStack::Content::Seminar.where(:id=>sid).first
+
+# rendered to convert markdown to html
+markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true)
+
+# load preferences
+name = s.name
+path = s.path
+publ = s.public
+desc = s.description
+type = s.type
+shwa = s.show_abstract
+shwb = s.show_free_premium_badges
+shwt = s.show_author
+shwp = s.show_path
+%>
+
+<!-- NavBar -->
+<div class="mynavbar mysticky">
+	<section class="row-fluid">	
+		<div class="span6">
+            <%=nav3("Content", "/content", "Seminars", "/content/seminars", "#{name.capitalize}")%>
+		</div>
+	</section>
+</div>
+
+<section class="row-fluid">
+    <div class="span3 box">
+        <h4>Sections</h4>
+        <%
+        s.sections.sort_by { |t| t.name.to_s }.select { |t| t.delete_time.nil? }.each { |section|
+        %>
+        <section class="row-fluid">
+            <div class="span12">
+                <a href='#<%=section.id.to_guid%>'><i class='icon-chevron-right'></i> <%=section.name.to_s.encode_html%></a>
+            </div>
+        </section>
+        <%
+        }
+        %>
+    </div>
+
+    <div class="span9">
+        <!-- edit seminar -->
+        <section class="row-fluid">
+            <div class="span12 box">
+                <form method='post' action='/content/filter_edit_seminar' class="form-horizontal">
+                    <input id='sid' name='sid' type='hidden' value='<%=sid%>'  />
+                    <div class="control-group">
+                        <label class="control-label" for="name">Name</label>
+                        <div class="controls">
+                            <input type="text" id="name" name='name' placeholder="Name" value='<%=name.to_s.encode_html%>' />
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label" for="path">Path</label>
+                        <div class="controls">
+                            <input type="text" id="path" name='path' placeholder="Path" value='<%=path.to_s.encode_html%>' />
+                            <p><b><%=CS_HOME_WEBSITE%>/seminars/</b><span id='preview_path'>path</span><b>/</b><span id='preview_name'>name</span></p>
+                        </div>
+
+                        <div class="controls">
+                            <label class="checkbox">
+                                <input type="checkbox" id='public' name='public' <%=publ ? 'checked' : ''%>> Public
+                                <p class='description'>Users don't require login to see this.</p>
+                            </label>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="type">Type</label>
+                            <div class="controls">
+                                <select id="type" name='type' placeholder="Type">
+                                    <%
+                                    BlackStack::Content::Seminar.types.each { |t|
+                                    %>
+                                    <option value='<%=t%>' <%=type==t ? 'selected' : ''%>><%=BlackStack::Content::Seminar.type_name(t).encode_html%></option>
+                                    <%
+                                    } # BlackStack::Content::Seminar.types.each { |t|
+                                    %>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="controls">
+                            <label class="checkbox">
+                                <input type="checkbox" id='show_abstract' name='show_abstract' <%=shwa ? 'checked' : ''%>> Show Abstracts
+                            </label>
+                        </div>
+                        
+                        <div class="controls">
+                            <label class="checkbox">
+                                <input type="checkbox" id='show_free_premium_badges' name='show_free_premium_badges' <%=shwb ? 'checked' : ''%>> Show Badges
+                            </label>
+                        </div>
+                        
+                        <div class="controls">
+                            <label class="checkbox">
+                                <input type="checkbox" id='show_author' name='show_author' <%=shwt ? 'checked' : ''%>> Show Author
+                            </label>
+                        </div>
+
+                        <div class="controls">
+                            <label class="checkbox">
+                                <input type="checkbox" id='show_path' name='show_path' <%=shwp ? 'checked' : ''%>> Show Path
+                            </label>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="description">Description</label>
+                            <div class="controls">
+                                <textarea id="description" name='description' placeholder="Description" rows=5 style='width:100%;' maxlength=4000><%=desc.to_s.encode_html%></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="controls">
+                            <button type="submit" class="btn btn-blue">Save</button>
+                            <a class="btn btn-gray" href='/content/seminars/<%=s.id.to_guid%>/view'>Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- draw section -->
+        <%
+        s.sections.sort_by { |t| t.name.to_s }.select { |t| t.delete_time.nil? }.each { |section|
+        %>
+        <section class="row-fluid" id='<%=section.id.to_guid%>' name='<%=section.id.to_guid%>'>
+            <div class="span12 box section">
+                <h2><%=BlackStack::Content::Seminar.merge(section.name.to_s).encode_html%></h2>
+                <pre class='description'><%=BlackStack::Content::Seminar.merge(section.description.to_s).encode_html%></pre>
+                <div class='content'>
+                    <%=markdown.render(BlackStack::Content::Seminar.merge(section.content.to_s))%>
+                </div>
+            </div>
+        </section>
+        <%
+        }
+        %>
+    </div>
+</section>

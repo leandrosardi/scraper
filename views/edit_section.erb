@@ -1,0 +1,292 @@
+<%
+sid = params[:sid].to_s
+tid = params[:tid].to_s
+
+s = BlackStack::Content::Seminar.where(:id=>sid).first
+t = BlackStack::Content::Section.where(:id=>tid).first
+
+# load preferences
+name = @login.user.preference('content.section.edit.name', '', t.name)
+desc = @login.user.preference('content.section.edit.description', '', t.description)
+premium = @login.user.preference('content.section.edit.premium', false, t.premium)
+premium_required_product = @login.user.preference('content.section.edit.premium_required_product', '', t.premium_required_product)
+premium_blured_screenshot_url = @login.user.preference('content.section.edit.premium_blured_screenshot_url', '', t.premium_blured_screenshot_url)
+type = @login.user.preference('content.section.edit.type', BlackStack::Content::Section::TYPE_MARKDOWN, t.type)
+content = t.content
+%>
+
+<!-- NavBar -->
+<div class="mynavbar mysticky">
+	<section class="row-fluid">	
+		<div class="span12">
+            <%=nav4("Content", "/content", "Seminars", "/content/seminars", "#{s.name.capitalize}", "/content/seminars/#{s.id.to_guid}/view", t.name)%>
+		</div>
+	</section>
+</div>
+
+<!-- Single Panel -->
+<section class="row-fluid">
+	<div class="span12 box">
+		<form method='post' action='/content/filter_edit_section' class="form-horizontal">
+            <input id='tid' name='tid' type='hidden' value='<%=t.id.to_guid%>'/>
+
+            <div class="control-group">
+                <label class="control-label" for="name">Name</label>
+                <div class="controls">
+                    <input type="text" id="name" name='name' placeholder="Name" value='<%=name.to_s.encode_html%>' />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="description">Description</label>
+                <div class="controls">
+                    <textarea id="description" name='description' placeholder="Description" rows=5 style='width:100%;' maxlength=4000><%=desc.to_s.encode_html%></textarea>
+                </div>
+
+                <div class="controls">
+                    <label class="checkbox">
+                        <input type="checkbox" id='premium' name='premium' <%=premium ? 'checked' : ''%>> Premium
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <b>Premium Content Configuration</b>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="name">Premium Required Product</label>
+                <div class="controls">
+                    <input type="text" class='input input-block-level' id="premium_required_product" name='premium_required_product' placeholder="Name of required pourchased product to access this premium content." value='<%=premium_required_product.to_s.encode_html%>' />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="name">Premium Blured Screenshot URL</label>
+                <div class="controls">
+                    <input type="text" class='input input-block-level' id="premium_blured_screenshot_url" name='premium_blured_screenshot_url' placeholder="URL of screenshot to show when the user has not grants to this premium content." value='<%=premium_required_product.to_s.encode_html%>' />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <b>Content</b>
+            </div>
+
+            <div class="control-group" id='content'>
+                <label class="control-label" for="description">Markdown</label>
+                <div class="controls">
+                    <div class="btn-group">
+                        <a class='btn btn-bold'><i class='icon-bold'></i></a>
+                        <a class='btn btn-italic'><i class='icon-italic'></i></a>
+                    </div>
+                    <!--
+                    <div class="btn-group">
+                        <a class='btn btn-ol'><i class='icon-list-ol'></i></a>
+                        <a class='btn btn-ul'><i class='icon-list-ul'></i></a>
+                    </div>
+                    -->
+                    <div class="btn-group">
+                        <a class='btn btn-insert-link'><i class='icon-link'></i></a>
+                        <a class='btn btn-picture'><i class='icon-picture'></i></a>
+                        <!--
+                        <a class='btn btn-file'><i class='icon-paper-clip'></i></a>
+                        -->
+                    </div>
+                    <textarea id="edit" name='edit' placeholder="Markdown Content" rows=15 style='width:100%;' maxlength=4000><%=content.to_s.encode_html%></textarea>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="controls">
+                    <button type="submit" class="btn btn-blue">Save</button>
+                    <a class="btn btn-gray" href='/content/seminars/<%=s.id.to_guid%>/view#<%=t.id.to_guid%>'>Cancel</a>
+                </div>
+            </div>
+        </form>
+	</div>
+</section>
+
+<!-- Modal Insert Link -->
+<div class="modal fade insert_link">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Insert Link</h3>
+  </div>
+  <div class="modal-body">
+    <label for="inputDescription">Caption</label>
+    <input type="text" name="caption" id='caption' />
+    <br>
+    <label for="inputDescription">URL</label>
+    <input type="text" name="url" id='url' />
+  </div>
+  <div class="modal-footer">
+    <a href="#" data-dismiss="modal" class="btn">Close</a>
+    <button type="submit" id="insert_link" class="btn btn-primary">Insert</button>
+  </div>
+</div>
+
+<!-- File Upload Form -->
+<form  method="post" enctype="multipart/form-data" id="upload_file" name='upload_file'>
+    <input type="file" name="file" id='file'>
+    <input type="submit" value="Upload Now" name="submit">
+</form>
+
+<script> 
+// hide popup in order to don't block the clock on other elements if it has not been opened yet
+$('.insert_link').hide();
+$('#upload_file').hide();
+
+$('.btn-bold').click(function() {
+    var text = $('#edit').val();
+    a = $('#edit').prop("selectionStart");
+    b = $('#edit').prop("selectionEnd");
+    //alert(a.toString() + ' ' + b.toString());
+
+    if (a == b) { // there is not selected text. just the cursor in a specific position
+        x = text.substring(0, a);
+        y = text.substring(a, text.length);
+        //alert(x + '-' + y);
+        $('#edit').val(x+'****'+y);
+        $('#edit').prop('selectionStart', a+2);
+        $('#edit').prop('selectionEnd', a+2);
+        $('#edit').focus();
+    } else { // there is selected text.
+        x = text.substring(0, a);
+        y = text.substring(a, b);
+        z = text.substring(b, text.length);
+        //alert(x + '-' + y + '-' + z);
+        $('#edit').val(x+'**'+y+'**'+z);
+        $('#edit').prop('selectionStart', a+2);
+        $('#edit').prop('selectionEnd', b+2);
+    }
+});
+
+$('.btn-italic').click(function() {
+    var text = $('#edit').val();
+    a = $('#edit').prop("selectionStart");
+    b = $('#edit').prop("selectionEnd");
+    //alert(a.toString() + ' ' + b.toString());
+
+    if (a == b) { // there is not selected text. just the cursor in a specific position
+        x = text.substring(0, a);
+        y = text.substring(a, text.length);
+        //alert(x + '-' + y);
+        $('#edit').val(x+'**'+y);
+        $('#edit').prop('selectionStart', a+1);
+        $('#edit').prop('selectionEnd', a+1);
+        $('#edit').focus();
+    } else { // there is selected text.
+        x = text.substring(0, a);
+        y = text.substring(a, b);
+        z = text.substring(b, text.length);
+        //alert(x + '-' + y + '-' + z);
+        $('#edit').val(x+'*'+y+'*'+z);
+        $('#edit').prop('selectionStart', a+1);
+        $('#edit').prop('selectionEnd', b+1);
+    }
+});
+
+$('.btn-insert-link').click(function() {
+    a = $('#edit').prop("selectionStart");
+    b = $('#edit').prop("selectionEnd");
+
+    $('.insert_link').find('#url').val('');
+
+    $('.insert_link').modal('show');
+
+    if (a != b) { // there is selected text, then use selected text as caption
+        $('.insert_link').find('#caption').val($('#edit').val().substring(a, b));
+        $('.insert_link').find('#url').focus();
+    } else {
+        $('.insert_link').find('#caption').val('');
+        $('.insert_link').find('#caption').focus();
+    }
+    $('.insert_link').find('#url').focus();
+});
+
+$('#insert_link').click(function() {
+    var caption = $('.insert_link').find('#caption').val();
+    var url = $('.insert_link').find('#url').val();
+    var text = $('#edit').val();
+    a = $('#edit').prop("selectionStart");
+    b = $('#edit').prop("selectionEnd");
+    //alert(a.toString() + ' ' + b.toString());
+    w = '['+caption+']('+url+')';
+
+    if (a == b) { // there is not selected text. just the cursor in a specific position
+        x = text.substring(0, a);
+        y = text.substring(a, text.length);
+        //alert(x + '-' + y);
+        $('#edit').val(x+w+y);
+        $('#edit').prop('selectionStart', a+w.length);
+        $('#edit').prop('selectionEnd', a+w.length);
+        $('#edit').focus();
+    } else { // there is selected text. replace selected text by new link
+        x = text.substring(0, a);
+        y = text.substring(a, b);
+        z = text.substring(b, text.length);
+        //alert(x + '-' + y + '-' + z);
+        $('#edit').val(x+w+z);
+        $('#edit').prop('selectionStart', a);
+        $('#edit').prop('selectionEnd', w.length);
+    }
+    $('.insert_link').modal('hide');
+});
+
+$('.btn-picture').click(function() {
+    $('#upload_file').find('#file').click();
+    setTimeout($('#upload_file').submit(), 1000); // wait for 1 second, so the filename is placed in the form
+});
+
+function addPicture(filename) {
+    var text = $('#edit').val();
+    a = $('#edit').prop("selectionStart");
+    b = $('#edit').prop("selectionEnd");
+    url = '<%=CS_HOME_WEBSITE%>/clients/<%=@login.user.account.id.to_guid%>/content.pictures/'+filename;
+    w = '![picture]('+url+')';
+
+    if (a == b) { // there is not selected text. just the cursor in a specific position
+        x = text.substring(0, a);
+        y = text.substring(a, text.length);
+        //alert(x + '-' + y);
+        $('#edit').val(x+w+y);
+        $('#edit').prop('selectionStart', a+w.length);
+        $('#edit').prop('selectionEnd', a+w.length);
+        $('#edit').focus();
+    } else { // there is selected text. replace selected text by new link
+        x = text.substring(0, a);
+        y = text.substring(a, b);
+        z = text.substring(b, text.length);
+        //alert(x + '-' + y + '-' + z);
+        $('#edit').val(x+w+z);
+        $('#edit').prop('selectionStart', a);
+        $('#edit').prop('selectionEnd', w.length);
+    }
+};
+
+$(document).on('submit','#upload_file',function(e) {
+    e.preventDefault();
+    var formData = new FormData(this);
+    $.ajax({
+        method:"POST",
+        url: "/ajax/content/upload_picture.json",
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+            beforeSend: function(){
+                //$('button[type="submit"]').attr('disabled','disabled');
+        },
+        success: function(data){
+            //$('button[type="submit"]').removeAttr('disabled');
+            response = JSON.parse(data);
+            if(response.status == 'success') {
+                // add picture to the editor
+                addPicture(response.filename);
+            } else {
+                alert(data);
+            }
+        }
+    });
+});
+</script>

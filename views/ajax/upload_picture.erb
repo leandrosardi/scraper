@@ -1,0 +1,37 @@
+<%
+return_message = {}
+begin
+    unless  params[:file] &&
+            (tmpfile = params[:file][:tempfile]) &&
+            (name = params[:file][:filename])
+        raise "No file selected"
+    end
+
+    # create the storage folders if they doesn't exist yet
+    @login.user.account.create_storage
+
+    # build the file path
+    filename = "#{guid}#{File.extname(name)}".downcase
+    path = "#{@login.user.account.storage_folder}/content.pictures"
+    return_message[:filename] = filename
+    return_message[:path] = path
+
+    # create the file
+    fullfilename = 
+    file = File.open("#{path}/#{filename}", 'wb')
+
+    # write file content
+    while blk = tmpfile.read(65536)
+        file.write(blk)
+    end
+
+    # close file
+    file.close
+
+    # return
+    return_message[:status] = 'success'
+rescue => e
+    return_message[:status] = e.to_console
+end
+return return_message.to_json
+%>

@@ -1,0 +1,67 @@
+<%
+begin
+    err = []
+    name = params['name'].to_s
+    path = params['path'].to_s
+    publ = params['public'].nil? ? false : params['public'].to_s == 'on'
+    desc = params['description'].to_s
+    type = params['type'].to_s
+    shwa = params['show_abstract'].nil? ? false : params['show_abstract'].to_s == 'on'
+    shwb = params['show_free_premium_badges'].nil? ? false : params['show_free_premium_badges'].to_s == 'on'
+    shwt = params['show_author'].nil? ? false : params['show_author'].to_s == 'on'
+    shwp = params['show_path'].nil? ? false : params['show_path'].to_s == 'on'
+
+    # save preferences
+    @login.user.preference('content.seminar.new.name', '', name)
+    @login.user.preference('content.seminar.new.path', '', path)
+    @login.user.preference('content.seminar.new.public', false, publ)
+    @login.user.preference('content.seminar.new.description', '', desc)
+    @login.user.preference('content.seminar.new.type', '', type)
+    @login.user.preference('content.seminar.new.show_abstract', true, shwa)
+    @login.user.preference('content.seminar.new.show_free_premium_badges', true, shwb)
+    @login.user.preference('content.seminar.new.show_author', true, shwt)
+    @login.user.preference('content.seminar.new.show_path', true, shwp)
+
+    # validate: the name is not empty
+    err << "Name is required." if name.empty?
+
+    # valdiate: the path is not empty
+    err << "Path is required." if path.empty?
+
+    # validate: the path is not already taken
+    err << "Path is already taken." if !BlackStack::Content::Seminar.available?(path, @login.user.account)
+
+    # validate: the name doesn't contain invalid characters
+    err << "Name contains invalid characters." if !BlackStack::Content::Seminar.valid_name?(name)
+
+    # validate: the path doesn't contain invalid characters
+    err << "Path contains invalid characters." if !BlackStack::Content::Seminar.valid_path?(path)
+
+    # validate: there is not other seminar with the same name and path
+    err << "There is already a seminar with the same name and path." if BlackStack::Content::Seminar.where(:path=>path, :name=>name).count > 0
+
+    # if any error happened, return to the edition screen
+    raise err.join("\n") if err.size > 0
+
+    o = BlackStack::Content::Seminar.new
+    o.id = guid
+    o.id_user = @login.user.id
+    o.create_time = now
+    o.name = name.downcase
+    o.path = path.downcase
+    o.description = desc
+    o.public = publ
+    o.type = type
+    o.show_abstract = shwa
+    o.show_free_premium_badges = shwb
+    o.show_author = shwt
+    o.show_path = shwp
+    o.save
+
+    # return
+    redirect "/content/seminars/#{o.id.to_guid}/view?msg="+ CGI::escape('Seminar created.')
+rescue => e
+    # return errors
+    redirect "/content/seminars/new?err="+ CGI::escape(e.message)
+end
+%>

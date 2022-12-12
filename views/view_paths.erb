@@ -1,0 +1,59 @@
+<%
+q = "
+    SELECT DISTINCT s.path
+    FROM cnt_seminar s 
+    WHERE s.public = true
+    ORDER BY s.path
+"
+%>
+
+<!-- NavBar -->
+<div class="mynavbar mysticky">
+	<section class="row-fluid">	
+		<div class="span6">
+		    <%=nav1("Seminars")%>
+		</div>
+	</section>
+</div>
+
+<!-- Content -->
+<section class="row-fluid">
+    <br/>
+    <p style='font-size:22px;'>
+        <b>Seminars</b> are Bundled in <b>Paths</b>
+    </p>
+    <p style='font-size:14px;'>
+        Each <b>Path</b> contains <b>Seminars</b>, all related the same topic.
+    </p>
+    <br/>
+</section>
+
+<%
+i = 0
+DB[q].all { |row|
+    i += 1
+    %>
+    <section class="row-fluid">
+        <div class="span12 box">
+            <h3><a href='/seminars/<%=row[:path].to_s.encode_html%>'><%=row[:path].to_s.capitalize.gsub('-  ', ' ').encode_html%></a></h3>
+        </div>
+    </section>
+    <%
+}
+%>
+
+<%
+if i==0
+%>
+<section class="row-fluid">
+    <div class="span12">
+        <center>
+            <p>
+                No available paths.
+            </p>
+        </center>
+    </div>
+</section>
+<%
+end # if i==0
+%>

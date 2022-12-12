@@ -1,0 +1,53 @@
+<%
+begin
+    err = []
+    name = params['name'].to_s
+    path = params['path'].to_s
+    publ = params['public'].nil? ? false : params['public'].to_s == 'on'
+    desc = params['description'].to_s
+    type = params['type'].to_s
+    shwa = params['show_abstract'].nil? ? false : params['show_abstract'].to_s == 'on'
+    shwb = params['show_free_premium_badges'].nil? ? false : params['show_free_premium_badges'].to_s == 'on'
+    shwt = params['show_author'].nil? ? false : params['show_author'].to_s == 'on'
+    shwp = params['show_path'].nil? ? false : params['show_path'].to_s == 'on'
+
+    # validate: the name is not empty
+    err << "Name is required." if name.empty?
+
+    # valdiate: the path is not empty
+    err << "Path is required." if path.empty?
+
+    # validate: the path is not already taken
+    err << "Path is already taken." if !BlackStack::Content::Seminar.available?(path, @login.user.account)
+
+    # validate: the name doesn't contain invalid characters
+    err << "Name contains invalid characters." if !BlackStack::Content::Seminar.valid_name?(name)
+
+    # validate: the path doesn't contain invalid characters
+    err << "Path contains invalid characters." if !BlackStack::Content::Seminar.valid_path?(path)
+
+    # validate: there is not other seminar with the same name and path
+    err << "There is already a seminar with the same name and path." if !DB["SELECT id FROM cnt_seminar WHERE path='#{path.to_s.to_sql}' and name='#{name.to_s.to_sql}' and id<>'#{params['sid'].to_guid}'"].first.nil?
+
+    # if any error happened, return to the edition screen
+    raise err.join("\n") if err.size > 0
+
+    o = BlackStack::Content::Seminar.where(:id=>params['sid'].to_guid).first
+    o.name = name.downcase
+    o.path = path.downcase
+    o.description = desc
+    o.public = publ
+    o.type = type
+    o.show_abstract = shwa
+    o.show_free_premium_badges = shwb
+    o.show_author = shwt
+    o.show_path = shwp
+    o.save
+
+    # return
+    redirect "/content/seminars/#{params['sid'].to_guid}/view?msg="+ CGI::escape('Seminar edited.')
+rescue => e
+    # return errors
+    redirect "/content/seminars/#{params['sid'].to_guid}/edit?err="+ CGI::escape(e.message)
+end
+%>

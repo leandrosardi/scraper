@@ -1,0 +1,58 @@
+<%
+path = params[:path]
+
+q = "
+    SELECT s.name, s.path, s.description --, count(distinct t.id) as sections, count(distinct a.id) as dones
+    FROM cnt_seminar s 
+    --LEFT JOIN cnt_section t ON s.id = t.id_seminar
+    --LEFT JOIN cnt_changelog g ON s.id = g.id_section
+    --LEFT JOIN cnt_action a ON (t.id = a.id_changelog and a.type=#{BlackStack::Content::Action::TYPE_DONE})
+    WHERE s.public = true
+    AND s.path = '#{path.to_s.to_sql}'
+    GROUP BY s.name, s.path, s.description
+    ORDER BY s.name
+"
+%>
+
+<!-- NavBar -->
+<div class="mynavbar mysticky">
+	<section class="row-fluid">	
+		<div class="span6">
+		    <%=nav2("Seminars", "/seminars", path.to_s.gsub('-', ' ').capitalize)%>
+		</div>
+	</section>
+</div>
+
+<!-- Content -->
+<%
+i = 0
+DB[q].all { |row|
+    i += 1
+    %>
+    <section class="row-fluid">
+        <a href='/seminars/<%=row[:path].to_s.encode_html%>/<%=row[:name].to_s.encode_html%>'>
+            <div class="span12 box">
+                <h3><%=row[:name].to_s.capitalize.gsub('-  ', ' ').encode_html%></h3>
+                <p><%=row[:description].to_s.encode_html%></p>
+            </div>
+        </a>
+    </section>
+    <%
+}
+%>
+
+<%
+if i==0
+%>
+<section class="row-fluid">
+    <div class="span12">
+        <center>
+            <p>
+                No available seminars.
+            </p>
+        </center>
+    </div>
+</section>
+<%
+end # if i==0
+%>

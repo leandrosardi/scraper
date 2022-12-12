@@ -1,0 +1,102 @@
+<%
+email = session['email'].to_s
+err = params[:err]
+msg = params[:msg]
+
+# map some params who are specific for for the filter
+redirect_on_success = session['redirect_on_success']
+
+# setup default values
+redirect_on_success = '/content/seminars?service=content' if redirect_on_success.to_s.size == 0
+%>
+<section class='row-fluid  signin-page' style='vertical-align: middle; height: 100%;' height='100%'>
+	<div class='span4 signin-page'>
+		<!-- Page content
+			================================================== -->
+		<div>
+			<!--
+			<a href="./index" title="<%=APP_NAME%>" class="header">
+				<span><img src="core/images/af-logo-signin.png" alt="Login to <%=APP_NAME%>"></span>
+			</a>
+			-->
+				
+			<span align='left'><h1>
+				<a href='/'><img src='/core/images/logo/logo-32-01.png' height='90px' title='<%=APP_NAME%> logo' /></a>
+			</h1></span><br/>
+			<span align='right'><h3>Login</h3></span><br/>
+		
+			<%
+			if err!=nil
+			%>
+			<div class="alert alert-error">
+			<%=err.to_s.encode_html%>
+			</div>
+			<%
+			end # err
+			%>
+				
+			<%
+			if msg!=nil
+			%>
+			<div class="alert alert-info">
+			  <a href="#" class="close" data-dismiss="alert"><i class='icon-remove-sign'></i></a><%=msg.encode_html%>
+			</div>
+			<%
+			end # msg
+			%>
+
+			<form action="/login" method="post">
+				<input type="hidden" name="redirect_on_success" id="redirect_on_success" value="<%=redirect_on_success.to_s.encode_html%>" />
+				<input type="hidden" name="redirect_on_error" id="redirect_on_error" value="/content/login" />
+				<fieldset>
+					<div class="fields">
+						<input type="text" name="email" placeholder="Email" id="id_email" tabindex="1"  onfocus="$(this).select();" value="<%=email.encode_html%>">
+						<input type="password" name="password" placeholder="Password" id="id_password" tabindex="2" onfocus="$(this).select();">
+					</div>						
+					<button type="submit" class="btn btn-primary btn-block" tabindex="3"><b>Login</b></button>
+				</fieldset>
+			</form>
+			<div>
+				<span align='right'><a href='/recover' tabindex="4">Reset your password</a></span><br/>
+				<br/>
+				<center>
+					Don't have an account?<br/>
+					<a href='/content/signup' class='btn btn-gray btn-block' tabindex="5"><b>Create a new <%=APP_NAME%> account</b></a>
+				</center>
+			</div>
+		</div>
+	</div>
+		
+	<div class='span1 signin-page'></div>
+		
+	<div class='span6 signin-page' style='vertical-align: middle; height: 100%;' height='100%'>
+		<center>
+
+		<br/>
+		<br/>
+
+		<img src='/core/images/landing.png' width='100%' title='<%=APP_NAME%> Dahsboard' /><br/>
+
+		<h3 class='landing'>
+			<%=APP_NAME%> Accounts<br/>Include Lorem Ipsum....
+		</h3>
+
+		<span>
+			<a href='/content/signup' target='_window'>Signup</a> to Grab Your Leads!
+		</span>
+		</center>
+	</div>
+
+	<div class='span1'>
+	</div>
+
+</section>
+
+<script>
+	$('document').ready(function(){
+console.log('a');
+		document.getElementById("id_email").focus();
+	});
+</script>
+
+

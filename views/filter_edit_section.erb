@@ -1,0 +1,71 @@
+<%
+# load the section object
+o = BlackStack::Content::Section.where(:id=>params['tid']).first
+begin
+    err = []
+    name = params['name'].to_s
+    description = params['description'].to_s
+    premium = params['premium'].nil? ? false : params['premium'].to_s == 'on'
+    premium_required_product = params['premium_required_product'].to_s
+    premium_blured_screenshot_url = params['premium_blured_screenshot_url'].to_s
+    type = params['type'].to_i
+    content = params['edit'].to_s
+
+    # save preferences
+    @login.user.preference('content.section.edit.name', '', name)
+    @login.user.preference('content.section.edit.description', '', description)
+    @login.user.preference('content.section.edit.premium', false, premium)
+    @login.user.preference('content.section.edit.premium_required_product', '', premium_required_product)
+    @login.user.preference('content.section.edit.premium_blured_screenshot_url', '', premium_blured_screenshot_url)
+    @login.user.preference('content.section.edit.type', BlackStack::Content::Section::TYPE_MARKDOWN, type)
+
+    # validate: the name is not empty
+    err << "Name is required." if name.empty?
+
+#    # validate: the name doesn't contain invalid characters
+#    err << "Name contains invalid characters." if !BlackStack::Content::Seminar.valid_name?(name)
+
+    # validate: if premium is true, premium_required_product cannot be empty
+    err << "Premium Required Product is required." if premium && premium_required_product.empty?
+
+    # validate: if premium is true, premium_required_product must be a valid product
+    err << "Premium Required Product is not a valid product." if premium && BlackStack::I2P::service_descriptor(premium_required_product).nil?
+
+#    # validate: if premium is true, premium_blured_screenshot_url cannot be empty
+#    err << "Premium Blured Screenshot URL is required." if premium && premium_blured_screenshot_url.empty?
+
+    # if any error happened, return to the edition screen
+    raise err.join("\n") if err.size > 0
+
+    # create a changelog entry
+    c = BlackStack::Content::Changelog.new
+    c.id = guid
+    c.id_user = @login.user.id
+    c.id_section = o.id
+    c.create_time = now
+    c.name = name
+    c.description = description
+    c.premium = premium
+    c.premium_required_product = premium_required_product
+    c.premium_blured_screenshot_url = premium_blured_screenshot_url
+    c.type = BlackStack::Content::Section::TYPE_MARKDOWN # TODO: by now, it supports markdown only
+    c.content = content
+    c.save
+
+    # update the section
+    o.name = name
+    o.description = description
+    o.premium = premium
+    o.premium_required_product = premium_required_product
+    o.premium_blured_screenshot_url = premium_blured_screenshot_url
+    o.type = BlackStack::Content::Section::TYPE_MARKDOWN # TODO: by now, it supports markdown only
+    o.content = content
+    o.save
+
+    # return
+    redirect "/content/seminars/#{o.id_seminar.to_guid}/view?msg="+ CGI::escape('Seminar created.') + "##{o.id.to_guid}"
+rescue => e
+    # return errors
+    redirect "/content/seminars/#{o.id_seminar.to_guid}/edit/#{o.id.to_guid}?err="+ CGI::escape(e.message)
+end
+%>

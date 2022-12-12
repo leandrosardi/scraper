@@ -1,0 +1,69 @@
+<%
+q = "
+    select s.id, s.path, s.name, s.description, u.id as id_user, u.name as user_name, s.create_time 
+    from cnt_seminar s
+    join \"user\" u on (u.id=s.id_user and u.id_account='#{@login.user.id_account}')
+    where s.delete_time is null
+    order by s.path, s.name
+"
+%>
+
+<!-- NavBar -->
+<div class="mynavbar mysticky">
+	<section class="row-fluid">	
+		<div class="span6">
+		<%=nav2("Content", "/content", "Seminars")%>
+		</div>
+	</section>
+</div>
+
+<!-- Single Panel -->
+<section class="row-fluid">
+	<div class="span12 box">
+        <table class="table table-condensed" style="table-layout: fixed; width: 100%;">
+            <thead>
+                <th style="width:120px;">Path</th>
+                <th style="width:120px;">Name</th>
+                <th style="width:auto;">Description</th>
+                <th style="width:90px;">Created By</th>
+                <!-- TODO: add these columns in the future
+                <th style="width:45px;">Updated By</th>
+                <th style="width:45px;">Last Update</th>
+                -->
+                <th style="width:8px;"><!-- edit button --></th>
+                <th style="width:8px;"><!-- delete button --></th>
+                <th style="width:8px;"><!-- public path --></th>
+            </thead>
+            <tbody>
+                <%
+                i = 0
+                DB[q].all do |row|
+                    i += 1
+                %>
+                <tr>
+                    <td class="fix" title="<%=row[:path].to_s.encode_html%>"><%=row[:path].to_s.encode_html%></td>
+                    <td class="fix" title="<%=row[:name].to_s.encode_html%>"><%=row[:name].to_s.encode_html%></td>
+                    <td class="fix" title="<%=row[:description].to_s.encode_html%>"><%=row[:description].to_s.encode_html%></td>
+                    <td class="fix" title="<%=row[:user_name].to_s.encode_html%>"><%=row[:user_name].to_s.encode_html%></td>
+                    <td><a title='Edit' href='/content/seminars/<%=row[:id].to_guid%>/view'><i class='icon-pencil'></i></a></td>
+                    <td><a title='Delete' href='/content/filter_delete_seminar?sid=<%=row[:id].to_guid%>'><i class='icon-trash'></i></a></td>
+                    <td><a title='View' href='<%=CS_HOME_WEBSITE%>/seminars/pub/<%=row[:path]%>/<%=row[:name]%>' target='_window'><i class='icon-link'></i></a></td>
+                </tr>
+                <%
+                end
+
+                if i==0
+                %>
+                <tr>
+                    <td colspan="8" class="fix" align='center' style='text-align:center;'>
+                        No seminars found.</br>
+                        <a href='/content/seminars/new'>Create a new seminar here.</a>
+                    </td>
+                <tr>
+                <%
+                end
+                %>
+            </tbody>
+        </table>
+    </div>
+</section>

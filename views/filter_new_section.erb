@@ -1,0 +1,22 @@
+<%
+begin
+    # create new section
+    o = BlackStack::Content::Section.new
+    o.id = guid
+    o.id_user = @login.id_user
+    o.id_seminar = params['sid'].to_guid
+    o.create_time = now
+    o.name = 'New Section'
+    o.description = 'New Section Description'
+    o.type = BlackStack::Content::Section::TYPE_MARKDOWN
+    o.content = ''
+    o.premium = false
+    o.save
+
+    # return
+    redirect "/content/seminars/#{params['sid']}/view?msg="+ CGI::escape('Section added.')
+rescue => e
+    # return errors
+    redirect "/content/seminars/#{params['sid']}/view?err="+ CGI::escape(e.message)
+end
+%>

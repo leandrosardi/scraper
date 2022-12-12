@@ -1,0 +1,387 @@
+<%
+account = @login.user.account
+
+# variables de sesion para recordar los usuuarios seleccionados
+ids = session['scraper.users.ids'].to_s
+
+# user preferences regarding the sorting
+order_column = @login.user.preference('scraper.users.order.column', 'name', params[:column])
+order_direction = @login.user.preference('scraper.users.order.direction', 'asc', params[:direction])
+
+# auxiliar variables regarding sorting
+new_order_direction = order_direction == 'asc' ? 'desc' : 'asc'
+order_icon = order_direction == 'asc' ? 'icon-arrow-up' : 'icon-arrow-down'
+
+# user preferences regarding the filtering
+filter_name = @login.user.preference('scraper.users.filter.name', '', params[:name])
+filter_email = @login.user.preference('scraper.users.filter.email', '', params[:email])
+filter_phone = @login.user.preference('scraper.users.filter.phone', '', params[:phone])
+
+# user preferences regarding the pagination
+#raise "`#{params[:number]}`"
+page_number = @login.user.preference('scraper.users.pagination.page', 1, params[:number].nil? ? nil : params[:number].to_i)
+page_size = @login.user.preference('scraper.users.pagination.size', 25, params[:size].nil? ? nil : params[:size].to_i)
+
+# variables de sesion para recordar datos de un nuevo usuario a crear
+name = session['scraper.users.name'].to_s 
+email = session['scraper.users.email'].to_s
+phone = session['scraper.users.phone'].to_s
+
+# query to bring all rows
+q0 = "
+	SELECT u.id as id
+	FROM \"user\" u
+	WHERE u.delete_time IS NULL
+	AND u.id_account = '#{account.id}'
+	AND u.name LIKE '%#{filter_name.to_s.to_sql}%'
+	AND u.email LIKE '%#{filter_email.to_s.to_sql}%'
+	AND COALESCE(u.phone, '') LIKE '%#{filter_phone.to_s.to_sql}%'
+"
+
+# gathering pagination info
+total_rows = DB[q0].count
+total_pages = (total_rows.to_f/page_size.to_f).ceil
+
+# pagination correction
+page_number = 1 if page_number < 1
+page_number = total_pages if page_number > total_pages
+
+# gathering pagination info
+from_row = (page_number.to_i-1) * page_size.to_i + 1
+to_row = [page_number*page_size, total_rows].min
+
+# query to bring page rows
+q = "
+	#{q0}
+	ORDER BY #{order_column} #{order_direction}
+	LIMIT #{page_number*page_size}
+	OFFSET #{(page_number.to_i - 1) * page_size.to_i}
+"
+
+# build the array of objects
+users = []
+DB[q].each { |row| 
+	user = BlackStack::MySaaS::User.where(:id=>row[:id]).first 
+	raise "User `#{row[:id]}` not found" if user.nil?
+	users << user
+	# release resources on each iteration
+	GC.start
+	DB.disconnect
+}
+%>
+
+<div class="mynavbar mysticky">
+	<section class="row-fluid">	
+		<div class='span6'>
+			<%=nav2("Scraper", "/scraper", "Dashboard")%>
+		</div>
+		<div class='span6' align='right' style='text-align: right;alignment-adjust: right; margin-left: 0;'>
+			<button id='update' name='update' data-rows-group-id='users' class="btn btn-blue btn-medium" type="button" title='Save Fields of Selected Users'>
+				<i class="icon-ok"></i>
+				Update
+			</button>
+			<button id='remove' name='remove' data-rows-group-id='users' class="btn btn-default btn-medium" type="button" title='Delete Selected Users'>
+				<i class="icon-remove"></i>
+				Ramove
+			</button>
+		</div>
+	</section>
+</div>
+
+<section class="container box">		
+	<table class="table table-condensed" style='table-layout: fixed; width: 100%;'>
+		<thead>
+			<th style='text-align: center; width:15px' >
+				<input class="checkbox select-all" data-input-id='ids' data-rows-group-id='users' type="checkbox">
+			</th>
+			<th style ='width:36px;'>
+				<!-- picture -->
+			</th>
+			<th style ='width:115px;'>
+				<!-- account owner badge -->
+				<!-- you badge -->
+			</th>
+			<th style ='width:auto;'>
+				<a href='/settings/users?column=name&direction=<%=new_order_direction%>'>Name</a> <%= order_column == 'name' ? "<i class='#{order_icon}'></i>" : "" %>
+			</th>
+			<th style ='width:auto;'>
+				<a href='/settings/users?column=email&direction=<%=new_order_direction%>'>Email</a> <%= order_column == 'email' ? "<i class='#{order_icon}'></i>" : "" %>
+			</th>
+			<th style ='width:auto;'>
+				<a href='/settings/users?column=phone&direction=<%=new_order_direction%>'>Phone</a> <%= order_column == 'phone' ? "<i class='#{order_icon}'></i>" : "" %>
+			</th>
+			<th style='width:36px;'>
+				<a href='/settings/users?column=verified&direction=<%=new_order_direction%>'>Verified</a> <%= order_column == 'verified' ? "<i class='#{order_icon}'></i>" : "" %>
+			</th>
+			<th style='width:36px;'>
+				<!-- remove button -->
+			</th>
+		</thead>
+
+		<thead>
+			<form action='/settings/users' method='get'>
+				<th colspan=2 style='text-align: left; vertical-align: top;'>
+					<!-- checkbox -->
+					<!-- picture -->
+					<span class='badge badge-green'>Filters</span>
+				</th>
+				<th>
+					<!-- account owner badge -->
+					<!-- you badge -->
+				</th>
+				<th>
+					<input class='filter-input input input-block-level select-all-on-focus' type='text' id='name' name='name' value='<%=filter_name.to_s.encode_html%>' />
+				</th>
+				<th>
+					<input class='filter-input input input-block-level select-all-on-focus' type='text' id='email' name='email' value='<%=filter_email.to_s.encode_html%>' />
+				</th>
+				<th>
+					<input class='filter-input input input-block-level select-all-on-focus' type='text' id='phone' name='phone' value='<%=filter_phone.to_s.encode_html%>' />
+				</th>
+				<th style='text-align: center; vertical-align: top;'>
+					<button type='submit' class='btn btn-link'><i class='icon-search'></i></button>
+				</th>
+				<th>
+					<!-- remove button -->
+				</th>
+			</form>
+		</thead>
+
+		<tbody>
+			<form id='edit_users' name='edit_users' method='post' action='/settings/filter_users_update'>
+				<input type='hidden' name='ids' id='ids' value='<%=ids%>' />
+				<%
+				users.each { |u|
+					# only account owner can edit any user
+					# other users can edit only themselves
+					allow_update = @login.user.account_owner? || u.id.to_guid == @login.user.id.to_guid
+					disabled = !allow_update ? 'disabled' : ''
+				%>
+				<tr>
+					<td style='text-align: center; vertical-align: top;'>
+						<input class="checkbox select-row" data-rows-group-id='users' type="checkbox" id="<%=u.id.to_guid%>" data-id="<%=u.id.to_guid%>" />
+					</td>
+					<td>
+						<img class='avatar' src="<%="https://www.gravatar.com/avatar/" + Digest::MD5.hexdigest(u.email.strip.downcase)%>" alt="<%=u.name.to_s.encode_html%>" />
+					</td>
+					<td style='text-align: center; vertical-align: top;'>
+						<%
+						# show badge if user is account owner
+						if u.account_owner?
+						%>
+							<span class='badge badge-success'>Owner</span>
+						<%
+						end
+						%>
+
+						<%
+						# show badge if user is the logged in user
+						if u.id.to_guid == @login.user.id.to_guid
+						%>
+							<span class='badge badge-blue'>You</span>
+						<%
+						end
+						%>
+
+						<%
+						# if logged in user is account owner, and user is not account owner, show make-owner button
+						if @login.user.account_owner? && !u.account_owner?
+						%>
+							<a class="btn btn-link make-owner semi-transparent-link" href='/settings/filter_users_set_account_owner?id_user=<%=u.id.to_guid%>'>Make Owner</a>
+						<%
+						end
+						%>
+					</td>
+					<td>
+						<input class='user-input input-block-level select-all-on-focus' type='text' id='name' name='names[<%=u.id.to_guid%>][]' value='<%=u.name.to_s.encode_html%>' <%=disabled%> />
+					</td>
+					<td>
+						<input class='user-input input-block-level select-all-on-focus' type='text' id='email' name='emails[<%=u.id.to_guid%>][]' value='<%=u.email.to_s.encode_html%>' <%=disabled%> />
+					</td>						
+					<td>
+						<input class='user-input input-block-level select-all-on-focus' type='text' id='phone' name='phones[<%=u.id.to_guid%>][]' value='<%=u.phone.to_s.encode_html%>' <%=disabled%> />
+					</td>
+					<td style='text-align: center; vertical-align: top;'>
+						<% if u.verified %>
+							<span style='color:green;'><i class="icon-ok"></i></span>
+						<% else %>
+							<a class='btn btn-link' title='Send Confirmation Email' href='/settings/filter_users_send_confirmation_email?id_user=<%=u.id.to_guid%>'><i class="icon-envelope-alt"></i></a>
+						<% end %>
+					</td>
+					<td style='text-align: center; vertical-align: top;'>
+						<% 
+						# even if it is allowed for update, don't allow delete if user is the logged in user
+						allowed_for_delete = allow_update && u.id.to_guid != @login.user.id.to_guid
+						disabled_for_delete = !allowed_for_delete ? 'disabled' : ''
+						color_for_delete = !allowed_for_delete ? 'gray' : 'red'
+						%>
+						<a class='btn btn-link' style='color:<%=color_for_delete%>;' title='Remove User' href='/settings/filter_users_delete?ids=<%=u.id.to_guid%>' <%=disabled_for_delete%>><i class="icon-remove"></i></a>
+					</td>
+					<button type='submit' id="update_users" style="display: none" class='btn btn-link' title='Add User'></button>
+				</tr>
+				<%
+				}
+				%>
+			</form>
+
+			<form id='add_user' name='add_user' method='post' action='/settings/filter_users_add'>
+				<%
+				# only account owner can add users
+				allow_update = @login.user.account_owner?
+				disabled = !allow_update ? 'disabled' : ''
+				color = allow_update ? 'green' : 'gray'
+				%>
+				<tr>
+					<td colspan=2 style='text-align: left; vertical-align: top;'>
+						<span class='badge badge-<%=color%>'>Add user</span>
+					</td>
+					<td>
+						<!-- account owner badge -->
+						<!-- you badge -->
+					</td>	
+					<td>
+						<input class='user-input input-block-level select-all-on-focus' type='text' value='<%=name.to_s.encode_html%>' id='name' name='name' <%=disabled%> />
+					</td>						
+					<td>
+						<input class='user-input input-block-level select-all-on-focus' type='text' value='<%=email.to_s.encode_html%>' id='email' name='email' <%=disabled%> />
+					</td>						
+					<td>
+						<input class='user-input input-block-level select-all-on-focus' type='text' value='<%=phone.to_s.encode_html%>' id='phone' name='phone' <%=disabled%> />
+					</td>
+					<td style='text-align: center; vertical-align: top;'>
+						<button type='submit' class='btn btn-link' title='Add User' <%=disabled%>><i class='icon-plus'></i></button>
+					</td>
+					<td style='text-align: center; vertical-align: top;'>
+						<!-- remove button -->
+					</td>				
+				</tr>
+			</form>
+
+			<! current page information -->
+			<tr>
+				<td colspan='5' style='text-align: left;'>
+					<div class='pagination'></div>
+				</td>
+				<td colspan='3' style='text-align: right;'>
+					<b>Records:</b> <%=from_row.to_label%> to <%=to_row.to_label%> <b>of</b> <%=total_rows.to_label%>
+				</td>
+			</tr>
+
+		</tbody>
+	</table>
+</section>
+
+
+<script>
+var selectRowsJs = {
+
+	// return the version if this selectRowsJs library.
+    version: function() {
+        return '1.0.1';
+    },
+
+	// get the value of data-input-id from_row the checkbox with class 'select-all' and data-rows-group-id equal to the parameter group_id.
+	// uncheck all the checkboxes with class 'select-row' and data-rows-group-id equal to the parameter group_id.
+	// check all the checkboxes with class 'select-row' and data-rows-group-id equal to the parameter group_id, and data-id included in the value of the input with class 'select-all' and data-input-id equal to the parameter input_id.
+	initialize_checkboxes: function(group_id) {
+		var input_id = $('.select-all[data-rows-group-id="' + group_id + '"]').data('input-id');
+		var input_value = $('#' + input_id).val();
+		var input_value_array = input_value.split(',');
+		$('.select-row[data-rows-group-id="' + group_id + '"]').prop('checked', false);
+		$('.select-row[data-rows-group-id="' + group_id + '"]').each(function() {
+			var id = $(this).data('id');
+			if (input_value_array.indexOf(id) != -1) {
+				$(this).prop('checked', true);
+			}
+		});
+	},
+
+	// enable all the buttons with the same data-rows-group-id if there is one or more checked checkboxes with class 'select-row' and data-rows-group-id equal to the parameter group_id.
+	// disable all the buttons with the same data-rows-group-id if there is no checked checkboxes with class 'select-row' and data-rows-group-id equal to the parameter group_id.
+	enable_disable_buttons: function(group_id) {
+		var checked_count = $("input.select-row[data-rows-group-id='" + group_id + "']:checked").length;
+		if (checked_count > 0) {
+			$("button[data-rows-group-id='" + group_id + "']").removeAttr('disabled');
+		} else {
+			$("button[data-rows-group-id='" + group_id + "']").attr('disabled', 'disabled');
+		}
+	},
+
+	// get the value of data-input-id from_row the checkbox with class 'select-all' and data-rows-group-id equal to the parameter group_id.
+	// update the input box .ids with the data-id of all the selected .select-row with data-rows-group-id equal to the parameter group_id.
+	update_input_ids: function(group_id) {
+		var input_id = $('input.select-all[data-rows-group-id="'+group_id+'"]').data('input-id');
+		var ids = [];
+		$('input.select-row[data-rows-group-id="'+group_id+'"]:checked').each(function() {
+			ids.push($(this).data('id'));
+		});
+		$('input#'+input_id).val(ids.join(','));
+	},
+	
+
+	// store the original function to call it later.
+	// for each group of checkboxes, call to the function initialize_checkboxes when the page is loaded.
+	// then, call the old code of the $(document).ready. 
+    init: function() {
+        let old_onload = window.onload;
+
+		// when check .select-all is checked, check all checkboxes .select-row with the same data-rows-group-id attribute.
+		// when check .select-all is unchecked, uncheck all checkboxes .select-row with the same data-rows-group-id attribute.
+		// call the function update_input_ids with the data-rows-group-id attribute of the checkbox .select-all.
+		// call the function enable_disable_buttons with the data-rows-group-id attribute of the checkbox .select-all.
+		$('.select-all').click(function() {
+			var group_id = $(this).data('rows-group-id');
+			if ($(this).is(':checked')) {
+				$('input.select-row[data-rows-group-id="'+group_id+'"]').prop('checked', true);
+			} else {
+				$('input.select-row[data-rows-group-id="'+group_id+'"]').prop('checked', false);
+			}
+			selectRowsJs.update_input_ids(group_id);
+			selectRowsJs.enable_disable_buttons(group_id);
+		});
+	
+		// when check .select-row is checked, update the input box .ids with the data-id of all the selected .select-row with the same data-rows-group-id.
+		// when check .select-row is unchecked, update the input box .ids with the data-id of all the selected .select-row with the same data-rows-group-id.
+		// call the function enable_disable_buttons with the data-rows-group-id attribute of the checkbox .select-row.
+		$('.select-row').click(function() {
+			var group_id = $(this).data('rows-group-id');
+			selectRowsJs.update_input_ids(group_id);
+			selectRowsJs.enable_disable_buttons(group_id);
+		});
+
+		// call the function initialize_checkboxes with the data-rows-group-id attribute of the checkbox .select-all.
+		// then, call the old code of the window.onload.
+        window.onload = function () {
+			$('.select-all').each(function() {
+				var group_id = $(this).data('rows-group-id');
+				selectRowsJs.initialize_checkboxes(group_id);
+				selectRowsJs.enable_disable_buttons(group_id);
+			});
+			
+            // call the original onload function
+            if (typeof old_onload == 'function') {
+                old_onload();
+            }
+        }
+    },
+} // var selectRowsJs
+
+$('#update').on('click', function (){
+	$('#update_users').click();
+})
+
+$('#remove').on('click', function (){
+	$('#edit_users').attr('action', '/settings/filter_users_delete')
+	$('#update_users').click();
+})
+
+semiTransparentLinks();
+
+formatLinks();
+
+// call the function init when the page is loaded.
+selectRowsJs.init();
+
+drawPagination($(".pagination"), <%=page_number%>, <%=total_pages%>);
+
+</script>

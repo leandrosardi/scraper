@@ -10,6 +10,8 @@ Refernces about Upload files with AJAX:
 'use strict';
 
 const csdomain = 'http://connectionsphere.com:3000';
+//const csdomain = 'http://127.0.0.1:3000';
+
 let email = document.getElementById('email');
 let password = document.getElementById('password');
 let id_login = document.getElementById('id_login');
@@ -126,7 +128,7 @@ function get_page() {
     // show loading status
     text.innerHTML = 'Getting page to scrape...' //+ chrome.tabs.length.toString();
     // define the api URL
-    let apiCall = csdomain+'/api1.0/isn/get.json?id_login='+id_login.value
+    let apiCall = csdomain+'/api1.0/isn/get.json?version='+chrome.runtime.getManifest().version+'&id_login='+id_login.value
     fetch(apiCall).then(function(res) {
         // wait for resonse
         if (res.status !== 200) {

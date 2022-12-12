@@ -2,8 +2,15 @@
 get "/scraper", :agent => /(.*)/ do
     redirect2 "/scraper/dashboard", params
 end
-get "/content/", :agent => /(.*)/ do
+get "/scraper/", :agent => /(.*)/ do
     redirect2 "/scraper/dashboard", params
+end
+
+get "/scraper/dashboard", :agent => /(.*)/ do
+    erb :"/extensions/scraper/views/dashboard", :layout => :"/views/layouts/public"
+end
+get "/scraper/dashboard/", :agent => /(.*)/ do
+    erb :"/extensions/scraper/views/dashboard", :layout => :"/views/layouts/public"
 end
 
 # public screens (signup/landing page)

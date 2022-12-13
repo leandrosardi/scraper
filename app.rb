@@ -24,7 +24,22 @@ get "/scraper/dashboard/", :auth => true, :agent => /(.*)/ do
     erb :"/extensions/scraper/views/dashboard", :layout => :"/views/layouts/core"
 end
 
-# isn: internal scraping network
+# filters
+post "/scraper/filter_pause_sharing", :auth => true, :agent => /(.*)/ do
+    erb :"/extensions/scraper/views/filter_pause_sharing"
+end
+get "/scraper/filter_pause_sharing", :auth => true, :agent => /(.*)/ do
+    erb :"/extensions/scraper/views/filter_pause_sharing"
+end
+
+post "/scraper/filter_play_sharing", :auth => true, :agent => /(.*)/ do
+    erb :"/extensions/scraper/views/filter_play_sharing"
+end
+get "/scraper/filter_play_sharing", :auth => true, :agent => /(.*)/ do
+    erb :"/extensions/scraper/views/filter_play_sharing"
+end
+
+# extension access points
 get '/api1.0/scraper/login.json' do
     erb :'/extensions/scraper/views/api1.0/login'
 end

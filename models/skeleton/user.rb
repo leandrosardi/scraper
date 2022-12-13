@@ -26,11 +26,9 @@ module BlackStack
                 return 'red' if label=='off'
             end
 
-            # return '-' if the field `scraper_last_ping_time` is nil
             # return 'yes' if the field `scraper_share` is true
             # return 'no' if the field `scraper_share` is false or nil
             def share_label
-                return '-' if self.scraper_last_ping_time.nil?
                 return 'yes' if self.scraper_share
                 return 'no'
             end
@@ -38,7 +36,6 @@ module BlackStack
             # return a color to show the sharing of the user's extension
             def share_color
                 label = self.share_label
-                return 'gray' if label=='-'
                 return 'green' if label=='yes'
                 return 'gray' if label=='no'
             end

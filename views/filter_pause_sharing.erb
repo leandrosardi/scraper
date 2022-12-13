@@ -1,0 +1,13 @@
+<%
+begin
+    ids = params[:ids].split(/,/).reject { |id| !id.to_s.guid? }
+    DB.execute("UPDATE \"user\" SET scraper_share=FALSE WHERE id IN ('#{ids.join("','")}')")
+    # return 
+    # on a new search, return the paginatin to the page 1.
+    # don't show any success message in this case. Just the results of the search.
+    redirect "/scraper/dashboard?msg=Done." 
+rescue => e
+    # return errors
+    redirect "/scraper/dashboard?err=#{CGI::escape(e.to_console[0..1000])}"
+end
+%>

@@ -70,8 +70,9 @@ q = all
 		    <%=nav2("Scraper", "/scraper", "Dashboard")%>
 		</div>
 		<div class="span8" style='text-align:right;'>
+            <input type='hidden' name='ids' id='ids' value='' />
             <button type="button" class="btn btn-blue" id='play_sharing' name='play_sharing' data-rows-group-id='users' title='Start Sharing'><i class='icon-play'></i> Start Sharing</button>
-            <button type="button" class="btn btn-gray" id='stop_sharing' name='stop_sharing' data-rows-group-id='users' title='Stop Sharing'><i class='icon-pause'></i></button>
+            <button type="button" class="btn btn-gray" id='pause_sharing' name='pause_sharing' data-rows-group-id='users' title='Stop Sharing'><i class='icon-pause'></i></button>
         </div>
 	</section>
 </div>
@@ -190,24 +191,22 @@ q = all
 </section>
 
 <script>
-	/*
     $(document).ready(function() {
         drawPagination($(".pagination"), <%=page_number%>, <%=total_pages%>);
         selectRowsJs.init();
 
-        $('#play_orders').click(function() {
+        $('#play_sharing').click(function() {
             var ids = $('#ids').val();
             if (ids.length > 0) {
-                window.location = '/dfy-leads/filter_play_orders?ids=' + ids;
+                window.location = '/scraper/filter_play_sharing?ids=' + ids;
             }
         });
 
-        $('#pause_orders').click(function() {
+        $('#pause_sharing').click(function() {
             var ids = $('#ids').val();
             if (ids.length > 0) {
-                window.location = '/dfy-leads/filter_pause_orders?ids=' + ids;
+                window.location = '/scraper/filter_pause_sharing?ids=' + ids;
             }
         });
     });
-	*/
 </script>

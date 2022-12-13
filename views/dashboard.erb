@@ -5,9 +5,16 @@ ids = selected_ids.split(',')
 
 all = "
     select 
-        u.id, 
+        u.id /*, 
         u.name,
-		u.email
+		u.email,
+        u.scraper_last_ping_time,
+        u.scraper_last_ping_version,
+        u.scraper_share,
+        u.scraper_ppp,
+        coalesce(u.scraper_stat_total_earnings, 0) as scraper_stat_total_earnings,
+        coalesce(u.scraper_stat_total_payouts, 0) as scraper_stat_total_payouts
+        */
     from \"user\" u
     where u.id_account = '#{@login.user.id_account}' 
 	and u.delete_time is null
@@ -54,9 +61,6 @@ q = "
 "
 
 q = all
-
-erb "<H1>HOLA</H1>"
-
 %>
 
 <!-- NavBar -->
@@ -73,37 +77,116 @@ erb "<H1>HOLA</H1>"
 </div>
 
 <!-- Single Panel -->
-<section class="row-fluid box">
+<section class="row-fluid">
+    <div class='span8 box'>
         <p>
             <b>Records:</b> <%=from_row.to_label%> to <%=to_row.to_label%> <b>of</b> <%=total_rows.to_label%>
         </p>
         <table class="table table-condensed" style="table-layout: fixed; width: 100%;">
             <thead>
-                <th style="width:24px;"><input type='checkbox' class='select-all-rows' data-rows-group-id='orders' data-input-id='ids' /></th>
+                <th style="width:24px;"><input type='checkbox' class='select-all-rows' data-rows-group-id='users' data-input-id='ids' /></th>
                 <th style="width:auto;">Name</th>
-                <th style="width:45px;">Status</th> <!-- if his extension is working -->
-                <th style="width:45px;">Version</th> <!-- what version of the scraper is using -->
-                <th style="width:45px;">Sharing</th> <!-- if he is sharing his extension for running with other accounts orders -->
-                <th style="width:45px;text-align:right;">Own<br/>Pages</th>
-                <th style="width:45px;text-align:right;">Other<br/>Pages</th>
-                <th style="width:45px;text-align:right;">PPP</th>
+                <th style="width:25px;"><!--Status--></th> <!-- if his extension is working -->
+                <th style="width:35px;">Share</th> <!-- if he is sharing his extension for running with other accounts orders -->
+                <th style="width:25px;">Ver.</th> <!-- what version of the scraper is using -->
+                <th style="width:45px;text-align:right;">Scraped<br/>Pages</th>
+                <th style="width:65px;text-align:right;">PPP</th>
                 <th style="width:65px;text-align:right;">Total<br/>Earnings</th>
                 <th style="width:65px;text-align:right;">Total<br/>Payouts</th>
             </thead>
 			<tbody>
 				<%
 				DB[q].all do |row|
+                    u = BlackStack::Scraper::User.where(:id=>row[:id]).first
 				%>
 				<tr>
-					<th><input type='checkbox' class='select-row' data-id='<%=row[:id].to_guid%>' data-rows-group-id='orders' <%=ids.include?(row[:id].to_guid) ? 'checked' : ''%> /></th>
-					<td class="fix" title="<%=row[:name].to_s.encode_html%>"><a href='/dfy-leads/orders/<%=row[:id].to_guid%>/edit'><%=row[:name].to_s.encode_html%></a></td>
-				</tr>
+					<th><input type='checkbox' class='select-row' data-id='<%=u.id.to_guid%>' data-rows-group-id='users' <%=ids.include?(u.id.to_guid) ? 'checked' : ''%> /></th>
+					<td class="fix" title="<%=u.name.to_s.encode_html%> - <%=u.email.to_s.encode_html%>">
+                        <a href='/scraper/users/<%=u.id.to_guid%>/movements'><%=u.name.to_s.encode_html%></a><br/>
+                        <span style='color:gray;'><%=u.email.to_s.encode_html%></span>
+                    </td>
+                    <td class="fix" title="<%=u.status_label.to_s.encode_html%>">
+                        <i class='icon-circle' style='color:<%=u.status_color%>'></i>
+                    </td>
+                    <td class="fix" title="<%=u.share_label.to_s.encode_html%>">
+                        <span style='color:<%=u.share_color%>'><%=u.share_label.encode_html%></span>
+                    </td>
+                    <td class="fix" title="<%=u.share_label.to_s.encode_html%>">
+                        <span><%=u.scraper_last_ping_version.to_s.encode_html%></span>
+                    </td>
+                    <td class="fix" style="text-align:right;" title="<%=u.scraper_stat_total_pages.to_i.to_label%>">
+                        <span><%=u.scraper_stat_total_pages.to_i.to_label%></span>
+                    </td>
+                    <td class="fix" style="text-align:right;" title="<%=u.scraper_ppp.to_i.to_label%>">
+                        <span style='color:blue;'>$<%='%.4f' % u.scraper_ppp.to_f%></span>
+                    </td>
+                    <td class="fix" style="text-align:right;" title="<%=u.scraper_stat_total_earnings.to_i.to_label%>">
+                        <span style='color:green;'>$<%='%.2f' % u.scraper_stat_total_earnings.to_f%></span>
+                    </td>
+                    <td class="fix" style="text-align:right;" title="<%=u.scraper_stat_total_payouts.to_i.to_label%>">
+                        <span style='color:red;'>$<%='%.2f' % u.scraper_stat_total_payouts.to_f%></span>
+                    </td>
+                </tr>
 				<%
 				end
 				%>
 			</tbody>
 		</table>
 		<div class="pagination"></div>
+    </div>
+
+    <div class='span4 box'>
+        <h3><i class='icon-question-sign'></i> How it Works?</h3>
+        <p><b><%=APP_SHORT_NAME%> Scraper</b> is a Chrome Extension for visiting pages and uploading them to <b><%=APP_NAME%></b> for further parsing, data extraction and enrichment.</p>
+
+        <h3><i class='icon-ok'></i> Get Profits</h3>
+        <p>Share your extension to scrape orders of other accounts, and get rewarded.</p>
+
+        <h3><i class='icon-cloud-download'></i> Download</h3>
+        <p><b>Latest Releases:</b></p>
+        <%
+        # get all the *.zip files the folder /extensions/scraper/public/extension
+        # and show them as a list of links
+        Dir.glob("extensions/scraper/public/scraper/extension/*.zip").sort.reverse.first(10).each do |file|
+            s = File.basename(file).gsub(/\.zip$/, '')
+            mayor = s.split('.').first.to_i
+            minor = s.split('.').last.to_i
+            # if mayor is odd, then is a beta version
+            beta = mayor % 2 == 0 ? ' (beta)' : ''
+            %>
+            <a href='<%=CS_HOME_WEBSITE%>/scraper/extension/<%=File.basename(file)%>'>v<%=s%></a> <%=beta%><br/>
+            <%
+        end
+        %>
+
+        <h3><i class='icon-cog'></i> Services</h3>
+        <p>The following services are supported by <b><%=APP_SHORT_NAME%> Scraper</b>:</p>
+        <ul>
+            <%
+            i = 0
+            %>
+
+            <%
+            if BlackStack::Extensions.exists?(:'dfy-leads')
+                i += 1
+            %>
+            <li><a href='<%=CS_HOME_WEBSITE%>/dfy-leads' target='_window'>Dfy Leads</a></li>
+            <%
+            end # if BlackStack::Extensions.exists?(:'dfy-leads')
+            %>
+
+            <%
+            if i == 0
+            %>
+            <center><span style='color:gray;'><i>No supported services found.</i></span></center>
+            <%
+            end # if i == 0
+            %>
+
+        </ul>
+
+
+    </div>
 </section>
 
 <script>

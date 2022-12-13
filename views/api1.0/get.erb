@@ -14,14 +14,14 @@ begin
     user.scraper_last_ping_version = version
     user.save
     # get a job
-    p = BlackStack::DfyLeads::Page.where(
-        :assign_reservation_id=>user.email, 
-        :assign_start_time=>nil, 
-        :assign_end_time=>nil
+    p = BlackStack::Scraper::Page.where(
+        :upload_reservation_id=>user.email, 
+        :upload_start_time=>nil, 
+        :upload_end_time=>nil
     ).first
     raise 'No pages assigned. Retry in few seconds.' if p.nil?
-    # update page assign_start_time
-    p.assign_start_time = now
+    # update page upload_start_time
+    p.upload_start_time = now
     p.save
     # return
 	return_message[:status] = 'success'

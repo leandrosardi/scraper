@@ -61,6 +61,7 @@ alter table "user" add column if not exists scraper_ppp numeric(28,8) not null d
 -- users can share their browsers to scrape other people orders and earn money.
 alter table "user" add column if not exists scraper_stat_total_earnings numeric(28,8) not null default 0;
 alter table "user" add column if not exists scraper_stat_total_payouts numeric(28,8) not null default 0;
+alter table "user" add column if not exists scraper_stat_total_pages bigint not null default 0;
 
 -- users can share their browsers to scrape other people orders and earn money.
 create table scr_movement (

@@ -26,23 +26,23 @@ end
 
 # isn: internal scraping network
 get '/api1.0/scraper/login.json' do
-    erb :'views/api1.0/scraper/login'
+    erb :'/extensions/scraper/views/api1.0/login'
 end
 post '/api1.0/scraper/login.json' do
-    erb :'views/api1.0/scraper/login'
+    erb :'/extensions/scraper/views/api1.0/login'
 end
   
 get '/api1.0/scraper/get.json' do
-    erb :'views/api1.0/scraper/get'
+    erb :'/extensions/scraper/views/api1.0/get'
 end
 post '/api1.0/scraper/get.json' do
-    erb :'views/api1.0/scraper/get'
+    erb :'/extensions/scraper/views/api1.0/get'
 end
   
 get '/api1.0/scraper/upload.json' do
-    erb :'views/api1.0/scraper/upload'
+    erb :'/extensions/scraper/views/api1.0/upload'
 end
 post '/api1.0/scraper/upload.json' do
-    erb :'views/api1.0/scraper/upload'
+    erb :'/extensions/scraper/views/api1.0/upload'
 end
   

@@ -9,8 +9,8 @@ Refernces about Upload files with AJAX:
 
 'use strict';
 
-const csdomain = 'http://connectionsphere.com:3000';
-//const csdomain = 'http://127.0.0.1:3000';
+//const csdomain = 'http://connectionsphere.com:3000';
+const csdomain = 'http://127.0.0.1:3000';
 
 let email = document.getElementById('email');
 let password = document.getElementById('password');
@@ -91,7 +91,7 @@ page_url.value = 'https://github.com';
                             let formData = new FormData(fileForm);
                             $.ajax({
                                 method:"POST",
-                                url: csdomain+"/api1.0/isn/upload.json",
+                                url: csdomain+"/api1.0/scraper/upload.json",
                                 data: formData,
                                 cache: false,
                                 contentType: false,
@@ -128,7 +128,7 @@ function get_page() {
     // show loading status
     text.innerHTML = 'Getting page to scrape...' //+ chrome.tabs.length.toString();
     // define the api URL
-    let apiCall = csdomain+'/api1.0/isn/get.json?version='+chrome.runtime.getManifest().version+'&id_login='+id_login.value
+    let apiCall = csdomain+'/api1.0/scraper/get.json?version='+chrome.runtime.getManifest().version+'&id_login='+id_login.value
     fetch(apiCall).then(function(res) {
         // wait for resonse
         if (res.status !== 200) {
@@ -165,7 +165,7 @@ function do_login() {
     // show logging in caption
     text.innerHTML = 'Logging in.....';
     // define the api URL
-    let apiCall = csdomain+'/api1.0/isn/login.json?email='+email.value+'&password='+password.value;
+    let apiCall = csdomain+'/api1.0/scraper/login.json?email='+email.value+'&password='+password.value;
     fetch(apiCall).then(function(res) {
         // wait for resonse
         if (res.status !== 200) {

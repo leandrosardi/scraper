@@ -21,4 +21,9 @@ BlackStack::Extensions::add ({
     :show_in_footer => true,
     # show this extension as a service in the dashboard?
     :show_in_dashboard => true,
+
+    # what are the screens to add in the leftbar
+    :leftbar_icons => [
+        { :label => 'dashboard', :icon => :dashboard, :screen => :dashboard, },
+    ],
 })

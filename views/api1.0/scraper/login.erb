@@ -1,0 +1,19 @@
+<% 
+return_message = {}
+
+# login
+begin
+	# guardar el ID de intento de l en una variable de sesion
+	login = BlackStack::MySaaS::User.login(params)
+	return_message[:status] = 'success'
+	return_message[:id_login] = login.id 
+rescue => e
+	# redirect
+	return_message[:status] = e.message
+end
+# libero recursos
+DB.disconnect
+GC.start
+# return 
+return return_message.to_json
+%>

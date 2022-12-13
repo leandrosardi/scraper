@@ -1,0 +1,39 @@
+<% 
+return_message = {}
+begin
+    # parse parameters
+    lid = params[:id_login]
+    version = params[:version]
+	# guardar el ID de intento de l en una variable de sesion
+	login = BlackStack::MySaaS::Login.where(:id => lid).first
+    raise "Login not found." if login.nil?
+    # parse 
+    user = login.user
+    # update the user last_activity
+    user.scraper_last_ping_time = now
+    user.scraper_last_ping_version = version
+    user.save
+    # get a job
+    p = BlackStack::DfyLeads::Page.where(
+        :assign_reservation_id=>user.email, 
+        :assign_start_time=>nil, 
+        :assign_end_time=>nil
+    ).first
+    raise 'No pages assigned. Retry in few seconds.' if p.nil?
+    # update page assign_start_time
+    p.assign_start_time = now
+    p.save
+    # return
+	return_message[:status] = 'success'
+	return_message[:id_page] = p.id.to_guid
+	return_message[:url] = p.url 
+rescue => e
+	# redirect
+	return_message[:status] = e.message
+end
+# libero recursos
+DB.disconnect
+GC.start
+# return 
+return return_message.to_json
+%>

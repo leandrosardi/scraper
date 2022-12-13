@@ -148,15 +148,19 @@ q = all
         <%
         # get all the *.zip files the folder /extensions/scraper/public/extension
         # and show them as a list of links
+        i = 0
         Dir.glob("extensions/scraper/public/scraper/extension/*.zip").sort.reverse.first(10).each do |file|
+            i += 1
             s = File.basename(file).gsub(/\.zip$/, '')
-            mayor = s.split('.').first.to_i
-            minor = s.split('.').last.to_i
-            # if mayor is odd, then is a beta version
-            beta = mayor % 2 == 0 ? ' (beta)' : ''
             %>
-            <a href='<%=CS_HOME_WEBSITE%>/scraper/extension/<%=File.basename(file)%>'>v<%=s%></a> <%=beta%><br/>
+            <a href='<%=CS_HOME_WEBSITE%>/scraper/extension/<%=File.basename(file)%>'>v<%=s%></a><br/>
             <%
+
+            if i == 0
+            %>
+            <center><span style='color:gray;'><i>No available releases.</i></span></center>
+            <%
+            end # if i == 0
         end
         %>
 
@@ -183,7 +187,6 @@ q = all
             <%
             end # if i == 0
             %>
-
         </ul>
 
 

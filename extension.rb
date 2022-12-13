@@ -8,7 +8,7 @@ BlackStack::Extensions::add ({
     :repo_branch => 'main',
 
     # define version with format <mayor>.<minor>.<revision>
-    :version => '0.0.1',
+    :version => '0.1',
 
     # define the name of the author
     :author => 'leandrosardi',

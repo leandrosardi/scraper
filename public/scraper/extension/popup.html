@@ -11,7 +11,9 @@
         </div>
         <div id="notify-containers">
             <div class="login-form">
-                <label for="text">Login</label>
+                <input type="button" id="popup" name="popup" value="Popup" />
+                <br/>
+                <br/>
                 <input type="text" id="email" name="email" placeholder='you@domain.com' />
                 <input type="password" id="password" name="password" placeholder='' />
                 <input type="button" id="login" name="login" value="Login" />
@@ -19,9 +21,10 @@
                 <br/>
                 <!-- File Upload Form -->
                 <form method="post" enctype="multipart/form-data" id="upload_file" name='upload_file'>
-                    <input type="text" id="id_login" name="id_login" />
-                    <input type="text" id="id_page" name="id_page" />
-                    <input type="text" id="page_url" name="page_url" />
+                    id_login: <input type="text" id="id_login" name="id_login" /><br/>
+                    id_page: <input type="text" id="id_page" name="id_page" /><br/>
+                    page_url: <input type="text" id="page_url" name="page_url" /><br/>
+                    tab_id: <input type="text" id="tab_id" name="tab_id" /><br/>
                     <br/>
                     <br/>
                     <input type="file" name="file" id='file' value="">

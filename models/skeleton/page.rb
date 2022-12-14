@@ -46,9 +46,11 @@ module BlackStack
                 o = self.order
                 # get the url
                 url = o.url
+                return nil if url.nil?
                 # get hash of parameters
                 uri = URI.parse(url)
-                params = CGI.parse(uri.query)
+                query = uri.query
+                params = query.nil? ? {} : CGI.parse(uri.query)
                 # remove the `page` parameter from the url
                 params.reject! { |k,v| k.downcase == 'page' }
                 # add page parameter

@@ -116,24 +116,21 @@ module BlackStack
             # 
             def why_not_available_for_assignation
                 # get current datetime
-                #t = DB['SELECT current_timestamp() AS now'].first[:now]
-                #dtnow = ::DateTime.strptime(t.to_s, '%Y-%m-%d %H:%M:%S.%ms %Z').to_time
-                dtnow = DB['SELECT current_timestamp() AS now'].first[:now]
                 # get the last assignation
                 a = BlackStack::Scraper::Assignation.where(:id_user=>self.id).order(:create_time).last
                 # if there is no assignation, return true
                 return nil if a.nil?
                 # get the seconds between the last assignation and now
-                seconds = (dtnow - a.create_time).to_i
+                seconds = (now - a.create_time).to_i
                 # get the total assignations in the last hour
                 total = BlackStack::Scraper::Assignation.where(
-                    :id_user=>self.id,
-                    :create_time=>(dtnow - 3600)..dtnow
+                    :id_user=>self.id, 
+                    :create_time=>(now - 3600)..now
                 ).count
                 # get the total assignations in the last 24 hours
                 total_24 = BlackStack::Scraper::Assignation.where(
                     :id_user=>self.id,
-                    :create_time=>(dtnow - 86400)..dtnow
+                    :create_time=>(now - 86400)..now
                 ).count
                 # return
                 return 'daily quota reached' if total_24 >= self.stealth_default_max_pages_per_day

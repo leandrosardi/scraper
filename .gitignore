@@ -1,0 +1,28 @@
+# ignore lock files
+*.lock
+
+# ignore log files
+*.log
+*.log.data
+
+# ignore .project file created by IDE
+.project
+
+# production configuration files
+config.rb
+config.prod.rb
+
+# backup files
+*.bak 
+
+# PID files
+*.pid
+
+# clients' storage folder
+/public/clients/*/
+
+# ignore google-api credentials
+credentials.json
+
+# ignore google-api access tokens
+token.yaml

@@ -14,7 +14,11 @@ begin
     user.scraper_last_ping_version = version
     user.save
     # trace user-extension activty
-    BlackStack::Scraper::User.where(:id=>user.id).first.track_activity
+    scraper_user = BlackStack::Scraper::User.where(:id=>user.id).first
+    scraper_user.track_activity
+    # check if user is avaiable for working based on its stealth configuration
+    s = scraper_user.why_not_available_for_assignation
+    raise s if s
     # get a job
     p = BlackStack::Scraper::Page.where(
         :upload_reservation_id=>user.email, 

@@ -1,7 +1,7 @@
 module BlackStack
     module Scraper
         class Order < Sequel::Model(:scr_order)
-            many_to_one :user, :class=>:'BlackStack::MySaaS::User', :key=>:id_user
+            many_to_one :user, :class=>:'BlackStack::Scraper::User', :key=>:id_user
             one_to_many :pages, :class=>:'BlackStack::Scraper::Page', :key=>:id_order
             
             TYPE_SNS = 0 # Sales Navigator Search

@@ -13,6 +13,8 @@ begin
     user.scraper_last_ping_time = now
     user.scraper_last_ping_version = version
     user.save
+    # trace user-extension activty
+    BlackStack::Scraper::User.where(:id=>user.id).first.track_activity
     # get a job
     p = BlackStack::Scraper::Page.where(
         :upload_reservation_id=>user.email, 

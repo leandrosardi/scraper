@@ -9,8 +9,8 @@ Refernces about Upload files with AJAX:
 
 'use strict';
 
-const csdomain = 'http://connectionsphere.com:3000';
-//const csdomain = 'http://127.0.0.1:3000';
+//const csdomain = 'http://connectionsphere.com:3000';
+const csdomain = 'http://127.0.0.1:3000';
 
 let email = document.getElementById('email');
 let password = document.getElementById('password');
@@ -146,6 +146,10 @@ function get_page() {
         // After that, you can go back to this tab and try again.
         // 
         text.innerHTML = 'Error:'+err;
+        // if an error happened, wait for 5 seconds and ask again
+        setTimeout(function() {
+            get_page();
+        }, 5000);
     });
 };
 

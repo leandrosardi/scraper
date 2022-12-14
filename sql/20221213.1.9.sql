@@ -47,6 +47,20 @@ create table if not exists scr_activity (
     active boolean not null
 );
 
+-- Trace when a page is assigned to a user.
+create table if not exists scr_assignation (
+    id uuid not null primary key,
+    create_time timestamp not null,
+    id_user uuid not null references "user"(id),
+    id_page uuid not null references scr_page(id),
+    "year" int not null,
+    "month" int not null,
+    "day" int not null,
+    "hour" int not null,
+    "minute" int not null,
+    "second" int not null
+);
+
 -- the leads module will allow to filter by dfy_leads orders.
 --alter table fl_search add column if not exists id_order uuid references scr_order(id) null;
 
@@ -72,3 +86,8 @@ create table scr_movement (
     "type" int not null, -- 0: earnings, 1: payout
     amount numeric(28,8) not null
 );
+
+-- allow agents to visit 1000 pages (10 full-sns) per day 
+alter table "user" add column if not exists stealth_default_seconds_between_pages int not null default 20;
+alter table "user" add column if not exists stealth_default_max_visits_per_hour int not null default 120;
+alter table "user" add column if not exists stealth_default_max_visits_per_day int not null default 1000;

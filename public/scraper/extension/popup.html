@@ -11,28 +11,35 @@
         </div>
         <div id="notify-containers">
             <div class="login-form">
-                <input type="button" id="popup" name="popup" value="Popup" />
-                <br/>
-                <br/>
-                <input type="text" id="email" name="email" placeholder='you@domain.com' />
-                <input type="password" id="password" name="password" placeholder='' />
-                <input type="button" id="login" name="login" value="Login" />
-                <br/>
-                <br/>
-                <!-- File Upload Form -->
-                <form method="post" enctype="multipart/form-data" id="upload_file" name='upload_file'>
-                    id_login: <input type="text" id="id_login" name="id_login" /><br/>
-                    id_page: <input type="text" id="id_page" name="id_page" /><br/>
-                    page_url: <input type="text" id="page_url" name="page_url" /><br/>
-                    tab_id: <input type="text" id="tab_id" name="tab_id" /><br/>
+                <div id="dialog_div" name="dialog_div">
+                    <p>Click the button below to open the login dialog.</p>
+                    <input type="button" id="dialog" name="dialog" value="Open Dialog" />
+                </div>
+                <div id="login_div" name="login_div">
                     <br/>
                     <br/>
-                    <input type="file" name="file" id='file' value="">
-                    <input type="submit" value="Upload Now" name="submit">
-                </form>
-                <br/>
-                <br/>
-                <p id="text" name="text"></p>
+                    <input type="text" id="email" name="email" placeholder='you@domain.com' />
+                    <input type="password" id="password" name="password" placeholder='' />
+                    <input type="button" id="login" name="login" value="Login" />
+                </div>
+                <div id="process_div" name="process_div">
+                    <br/>
+                    <br/>
+                    <!-- File Upload Form -->
+                    <form method="post" enctype="multipart/form-data" id="upload_file" name='upload_file'>
+                        tab_id: <input type="text" id="tab_id" name="tab_id" /><br/>
+                        id_login: <input type="text" id="id_login" name="id_login" /><br/>
+                        id_page: <input type="text" id="id_page" name="id_page" /><br/>
+                        page_url: <input type="text" id="page_url" name="page_url" /><br/>
+                        <br/>
+                        <br/>
+                        <input type="file" name="file" id='file' value="">
+                        <input type="submit" value="Upload Now" name="submit">
+                    </form>
+                    <br/>
+                    <br/>
+                    <p id="text" name="text"></p>
+                </div>
             </div>
         </div>
         <script src="popup.js"></script>

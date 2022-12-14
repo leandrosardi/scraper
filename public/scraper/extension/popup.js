@@ -9,22 +9,21 @@ Refernces about Upload files with AJAX:
 
 'use strict';
 
-//const csdomain = 'http://connectionsphere.com:3000';
-const csdomain = 'http://127.0.0.1:3000';
+const csdomain = 'http://connectionsphere.com:3000';
+//const csdomain = 'http://127.0.0.1:3000';
 
 let email = document.getElementById('email');
 let password = document.getElementById('password');
+
 let id_login = document.getElementById('id_login');
 let id_page = document.getElementById('id_page');
 let page_url = document.getElementById('page_url');
 let text = document.getElementById('text');
-let tab_id_before_popup = null; // current tab that I have to manipulate
 
 // steps: how many times to scroll down
 // steps_length: how many pixels each step
 // delay_between_steps: how many milliseconds to wait between each step
-async function upload_page(steps=10, step_length=1000, delay_between_steps=1000) {
-alert('1');
+async function scroll_and_get_html(steps=10, step_length=1000, delay_between_steps=1000) {
     // scroll down to load AJAX content
     var i = 0;
     while (i < steps) {
@@ -38,13 +37,15 @@ alert('1');
 
 // Upload the page to CS.
 function scrape_page() {
-page_url.value = 'https://github.com';
+    // get id of the tab that I have to work with
+    let tab_id = parseInt(document.getElementById('tab_id').value);
+
     text.innerHTML = 'Going to page...';
-    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
-        // get the tab id
-        var tab_id = tabs[0].id;
+    chrome.tabs.query({}, async function(tabs) {
+    for (let i=0; i<tabs.length; ++i) {
+    if (tabs[i].id == tab_id) {
         // go to the page
-        chrome.tabs.update({url: page_url.value});
+        chrome.tabs.update(tabs[i].id, {url: page_url.value});
         // fired when tab is updated
         chrome.tabs.onUpdated.addListener(function openPage(tabID, changeInfo) {
             // tab has finished loading
@@ -57,28 +58,14 @@ page_url.value = 'https://github.com';
                     {
                         target: {tabId: tab_id, allFrames: true},
                         //args: [ csdomain, id_page.value ],
-                        func: upload_page
+                        func: scroll_and_get_html
                     }, 
                     // Get the value returned by do_login.
                     // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
                     (injectionResults) => {
                         for (const frameResult of injectionResults) {
                             let page_content = frameResult.result;
-
-                            // cap to 5MB max because the CORS policy
-                            //let maxsize = 1*1024*1024;
-                            //if (page_content.length > maxsize) {
-                            //    page_content = page_content.substring(0, maxsize);
-                            //}
-
-                            /*
-                            text.innerHTML = "Saving page...";
-                            // save the HTML page in the download folder
-                            let blob = new Blob([page_content], {type: "application/html;charset=utf-8"});
-                            let objectURL = URL.createObjectURL(blob);
-                            chrome.downloads.download({ url: objectURL, filename: ('linkedin-scraper/data.html'), conflictAction: 'overwrite' });
-                            */
-                           
+                            
                             text.innerHTML = "Uploading page...";
                             let fileInput = document.getElementById('file');
                             let fileForm = document.getElementById('upload_file');
@@ -105,23 +92,23 @@ page_url.value = 'https://github.com';
                                     //$('button[type="submit"]').removeAttr('disabled');
                                     let response = JSON.parse(data);
                                     text.innerHTML = response.status;
+
+                                    // ask for a new page to visit and upload
+                                    get_page();
                                 },
                                 error: function(data){
                                     //$('button[type="submit"]').removeAttr('disabled');
                                     let response = JSON.parse(data);
                                     text.innerHTML = response.status;
                                 }
-                            });
-                                                    
-                            // otherwise, wait for 5 seconds and ask again
-//                            setTimeout(function() {
-//                                get_page();
-//                            }, 5000);
+                            });                                                    
                         } // for (const frameResult of injectionResults)
                     }
                 );
             }
-        });    
+        }); 
+    } // if (tabs[i].id == tab_id) {
+    } // for (let i=0; i<tabs.length; ++i) {   
     });
 }
 
@@ -196,45 +183,10 @@ function do_login() {
 
 
 login.onclick = function() {
-    //do_login();
-    
-    function a() {
-        alert('a');
-    }
-
-    let tid = parseInt(document.getElementById('tab_id').value);
-
-//    chrome.tabs.update({url: 'https://connectionsphere.com'});
-
-    // find a chrome tab by its id
-    chrome.tabs.query({}, function(tabs) {
-        for (let i=0; i<tabs.length; ++i) {
-            if (tabs[i].id == tid) {
-                chrome.tabs.update(tabs[i].id, {url: 'https://connectionsphere.com'});
-            }
-        }
-    });
-
-/*
-    chrome.tabs.onUpdated.addListener(function openPage(tid, changeInfo) {
-        chrome.scripting.executeScript(
-            {
-                target: {tabId: parseInt(tid), allFrames: true},
-                //args: [ csdomain, id_page.value ],
-                func: a
-            },
-            // Get the value returned by do_login.
-            // Reference: https://developer.chrome.com/docs/extensions/reference/scripting/#handling-results
-            (injectionResults) => {
-                // ...
-            }
-        );
-    });
-*/
+    do_login();
 }
 
-
-popup.onclick = function() {
+dialog.onclick = function() {
     // go to the page
     chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
         // get the tab id
@@ -243,6 +195,12 @@ popup.onclick = function() {
         let win1 = window.open('popup.html', 'win1', 'width=400,height=400');
         win1.onload = function() {
             win1.document.getElementById('tab_id').value = tab_id;
+            win1.document.getElementById('dialog_div').style.display = 'none';
+            win1.document.getElementById('login_div').style.display = 'block';
+            win1.document.getElementById('process_div').style.display = 'block';
         }    
     });
 }
+
+$("#login_div").hide();
+$("#process_div").hide();

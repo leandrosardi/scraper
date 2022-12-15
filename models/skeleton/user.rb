@@ -16,10 +16,12 @@ module BlackStack
                     FROM \"user\" u
                     WHERE u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '1 minutes'
                     AND u.scraper_share = true
-                    #{ limit > 0 ? "LIMIT #{limit}" : "" }
                 "].all { |row| 
                     # add object to array
-                    ret << BlackStack::Scraper::User.where(:id=>row[:id]).first
+                    u = BlackStack::Scraper::User.where(:id=>row[:id]).first
+                    ret << u if u.available_for_assignation?
+                    # break if limit reached
+                    break if limit > 0 and ret.length >= limit
                     # release resources
                     GC.start
                     DB.disconnect
@@ -41,10 +43,12 @@ module BlackStack
                     FROM \"user\" u
                     WHERE u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '1 minutes'
                     AND u.id_account = '#{self.id_account.to_guid}'
-                    #{ limit > 0 ? "LIMIT #{limit}" : "" }
                 "].all { |row| 
                     # add object to array
-                    ret << BlackStack::Scraper::User.where(:id=>row[:id]).first
+                    u = BlackStack::Scraper::User.where(:id=>row[:id]).first
+                    ret << u if u.available_for_assignation?
+                    # break if limit reached
+                    break if limit > 0 and ret.length >= limit
                     # release resources
                     GC.start
                     DB.disconnect

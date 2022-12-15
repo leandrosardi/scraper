@@ -29,6 +29,41 @@ module BlackStack
                 ret
             end
 
+            # find pages assigned (`upload_reservation_id`), 
+            # 5 minutes ago (`upload_reservation_time`) or 
+            # earlier, but not finished yet (`upload_end_time`).
+            def self.abandoned(limit=-1)
+                ret = []
+                # build the query
+                q = "
+                select p.id
+                from scr_page p
+                where
+                    upload_reservation_id is not null and
+                    upload_reservation_time < cast('#{now}' as timestamp) - interval '5 minutes' and
+                    upload_end_time is null
+                "
+                q += "limit #{limit}" if limit > 0
+                # load the object
+                DB[q].all { |r|
+                    ret << BlackStack::Scraper::Page.where(:id=>r[:id]).first
+                    # release resources
+                    GC.start
+                    DB.disconnect
+                }
+                # return
+                ret
+            end
+
+            # reset upload reservation flags
+            def relaunch()
+                self.upload_reservation_id = nil
+                self.upload_reservation_time = nil
+                self.upload_start_time = nil
+                self.upload_end_time = nil            
+                self.save
+            end
+
             # assign this page to a user
             def assign(user)
                 # track the assignation

@@ -3,6 +3,16 @@ module BlackStack
         class Page < Sequel::Model(:scr_page)
             many_to_one :order, :class=>:'BlackStack::Scraper::Order', :key=>:id_order
             
+            # trigger
+            def after_update
+                self.apply_earnings
+            end
+
+            # trigger
+            def after_create
+                self.apply_earnings
+            end
+
             # get the pages with an URL assigned 
             # and pending for visit/upload, with 
             # a try time lower than 5.
@@ -98,8 +108,27 @@ module BlackStack
             
             # track the earnings to the user who scraped this page
             # update user.scraper_stat_total_earnings
-            def track_earnings
-                # TODO: Code Me!
+            def apply_earnings
+                # page must have been uplaoded and parsed successfully
+                return if self.upload_success.nil? || self.upload_success == false
+                return if self.parse_success.nil? || self.parse_success == false
+                # get the users
+                user_owner = self.order.user
+                user_agent = BlackStack::Scraper::User.where(:email=>self.upload_reservation_id).first 
+                # user owner and agent must be belonging different accounts
+                return if user_owner.id_account.to_guid == user_agent.id_account.to_guid
+                # must not be an earning already registered for this page
+                earning = BlackStack::Scraper::Movement.where(:id_page=>self.id).first
+                return if earning
+                # apply the earnings
+                m = BlackStack::Scraper::Movement.new
+                m.id = guid
+                m.create_time = now
+                m.id_page = self.id
+                m.id_user = user_agent.id
+                m.type = BlackStack::Scraper::Movement::TYPE_EARNING
+                m.amount = user_agent.scraper_ppp
+                m.save
             end
 
             # track a payout to a user

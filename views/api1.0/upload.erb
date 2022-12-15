@@ -18,7 +18,6 @@ begin
     return_message[:filename] = filename
     return_message[:path] = path
     # create the file
-    fullfilename = 
     file = File.open("#{path}/#{filename}", 'wb')
     # write file content
     while blk = tmpfile.read(65536)

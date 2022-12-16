@@ -9,8 +9,7 @@ Refernces about Upload files with AJAX:
 
 'use strict';
 
-//const csdomain = 'http://connectionsphere.com:3000';
-const csdomain = 'http://127.0.0.1:3000';
+const csdomain = 'http://connectionsphere.com:3000';
 
 let email = document.getElementById('email');
 let password = document.getElementById('password');
@@ -169,6 +168,11 @@ function do_login() {
             if (data.status === 'success') {
                 text.innerHTML = data.status;
                 id_login.value = data.id_login;
+                // disable login form
+                email.disabled = true;
+                password.disabled = true;
+                login.disabled = true;
+                // ask for a new page to visit and upload
                 get_page();
             } else {
                 text.innerHTML = data.status;
@@ -201,7 +205,7 @@ dialog.onclick = function() {
             win1.document.getElementById('tab_id').value = tab_id;
             win1.document.getElementById('dialog_div').style.display = 'none';
             win1.document.getElementById('login_div').style.display = 'block';
-            win1.document.getElementById('process_div').style.display = 'block';
+            //win1.document.getElementById('process_div').style.display = 'block';
         }    
     });
 }

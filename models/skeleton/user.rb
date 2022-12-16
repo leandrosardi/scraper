@@ -2,6 +2,8 @@ module BlackStack
     module Scraper
         # inherit from BlackStack::MySaaS::User
         class User < BlackStack::MySaaS::User
+            # array of orders
+            one_to_many :orders, :class=>:'BlackStack::Scraper::Order', :key=>:id_user
 
             # return array of of BlackStack::Scraper::User objects 
             # who are running the extension right now, and who are
@@ -187,6 +189,18 @@ module BlackStack
                 label = self.share_label
                 return 'green' if label=='yes'
                 return 'gray' if label=='no'
+            end
+
+            # update scraper_stat_total_pages, scraper_stat_total_earnings, scraper_stat_total_payouts
+            def update_stats
+                # total pages
+                a = BlackStack::Scraper::Page.where("upload_reservation_id='#{self.email.to_sql}' and upload_success=true").count
+                # total earnings
+                b = BlackStack::Scraper::Movement.where("id_user='#{self.id}' and amount>0").sum
+                # total payouts
+                c = BlackStack::Scraper::Movement.where("id_user='#{self.id}' and amount<0").sum
+                # save
+                DB.execute("UPDATE \"user\" SET scraper_stat_total_pages=#{a.to_s}, scraper_stat_total_earnings=#{b.to_s}, scraper_stat_total_payouts=#{c.to_s} WHERE id='#{self.id}'")
             end
 
         end # class User

@@ -129,6 +129,8 @@ module BlackStack
                 m.type = BlackStack::Scraper::Movement::TYPE_EARNING
                 m.amount = user_agent.scraper_ppp
                 m.save
+                # update the user stats
+                user_agent.update_stats
             end
 
             # track a payout to a user

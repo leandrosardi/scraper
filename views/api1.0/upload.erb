@@ -29,6 +29,8 @@ begin
     page.upload_success = true
     page.upload_end_time = now
     page.save
+    # update user.scraper_stat_total_pages stat
+    BlackStack::Scraper::User.where(:id=>login.id_user).update_stats
     # return
     return_message[:status] = 'success'
 rescue => e

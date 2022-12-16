@@ -91,3 +91,4 @@ create table scr_movement (
 alter table "user" add column if not exists stealth_default_seconds_between_pages int not null default 20;
 alter table "user" add column if not exists stealth_default_max_pages_per_hour int not null default 120;
 alter table "user" add column if not exists stealth_default_max_pages_per_day int not null default 1000;
+

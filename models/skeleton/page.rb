@@ -26,6 +26,7 @@ module BlackStack
                 from scr_page p
                 join scr_order o on (o.id=p.id_order and o.url is not null)
                 where
+                    upload_reservation_id is null and
                     coalesce(upload_success,false)=false and 
                     coalesce(upload_reservation_times,0)<5
                 "

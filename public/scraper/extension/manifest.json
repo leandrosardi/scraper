@@ -1,9 +1,9 @@
 {
 	"name": "Scraper",
 	"description": "Simple Extension to Scrape Sales Navigator, and Push Results to ConnectionSphere.com for Data Enrichment",
-	"version": "1.2",
+	"version": "1.3",
 	"permissions": ["storage", "webRequest", "scripting", "declarativeContent", "activeTab", "tabs", "downloads", "*://*/*", "http://connectionsphere.com:80/*", "http://connectionsphere.com/api1.0/emails/verify.json"],
-	"host_permissions": [ "https://www.amazon.com/*", "https://connectionsphere.com/*", "https://github.com/*", "https://linkedin.com/*" ],
+	"host_permissions": [ "https://www.amazon.com/*", "https://connectionsphere.com/*", "https://github.com/*", "https://linkedin.com/*", "https://www.linkedin.com/*"  ],
 	"manifest_version": 3,
 	"icons": {
 	  "48": "/48.png",

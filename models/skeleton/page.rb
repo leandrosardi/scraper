@@ -5,11 +5,13 @@ module BlackStack
             
             # trigger
             def after_update
+                super
                 self.apply_earnings
             end
 
             # trigger
             def after_create
+                super
                 self.apply_earnings
             end
 

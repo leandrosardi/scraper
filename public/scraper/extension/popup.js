@@ -88,7 +88,6 @@ function scrape_page() {
                             let dataTransfer = new DataTransfer();
                             dataTransfer.items.add(myFile);
                             fileInput.files = dataTransfer.files;
-console.log('a');
                             let formData = new FormData(fileForm);
                             $.ajax({
                                 method:"POST",
@@ -104,9 +103,8 @@ console.log('a');
                                     //$('button[type="submit"]').removeAttr('disabled');
                                     let response = JSON.parse(data);
                                     text.innerHTML = response.status;
-console.log(response.status);
                                     // ask for a new page to visit and upload
-//                                    get_page();
+                                    get_page();
                                 },
                                 error: function(data){
                                     //$('button[type="submit"]').removeAttr('disabled');

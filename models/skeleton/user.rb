@@ -194,11 +194,11 @@ module BlackStack
             # update scraper_stat_total_pages, scraper_stat_total_earnings, scraper_stat_total_payouts
             def update_stats
                 # total pages
-                a = BlackStack::Scraper::Page.where("upload_reservation_id='#{self.email.to_sql}' and upload_success=true").count
+                a = BlackStack::Scraper::Page.where(:upload_reservation_id=>self.email, :upload_success=>true).count
                 # total earnings
-                b = BlackStack::Scraper::Movement.where("id_user='#{self.id}' and amount>0").sum
+                b = BlackStack::Scraper::Movement.where(:id_user=>self.id, :type=>BlackStack::Scraper::Movement::TYPE_EARNING).sum(:amount).to_f
                 # total payouts
-                c = BlackStack::Scraper::Movement.where("id_user='#{self.id}' and amount<0").sum
+                c = BlackStack::Scraper::Movement.where(:id_user=>self.id, :type=>BlackStack::Scraper::Movement::TYPE_PAYOUT).sum(:amount).to_f
                 # save
                 DB.execute("UPDATE \"user\" SET scraper_stat_total_pages=#{a.to_s}, scraper_stat_total_earnings=#{b.to_s}, scraper_stat_total_payouts=#{c.to_s} WHERE id='#{self.id}'")
             end

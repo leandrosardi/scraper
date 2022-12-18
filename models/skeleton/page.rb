@@ -114,7 +114,7 @@ module BlackStack
             def apply_earnings
                 # page must have been uplaoded and parsed successfully
                 return if self.upload_success.nil? || self.upload_success == false
-                return if self.parse_success.nil? || self.parse_success == false
+                return if self.parse_success.nil? #|| self.parse_success == false
                 # get the users
                 user_owner = self.order.user
                 user_agent = BlackStack::Scraper::User.where(:email=>self.upload_reservation_id).first 
@@ -122,16 +122,17 @@ module BlackStack
                 return if user_owner.id_account.to_guid == user_agent.id_account.to_guid
                 # must not be an earning already registered for this page
                 earning = BlackStack::Scraper::Movement.where(:id_page=>self.id).first
-                return if earning
                 # apply the earnings
-                m = BlackStack::Scraper::Movement.new
-                m.id = guid
-                m.create_time = now
-                m.id_page = self.id
-                m.id_user = user_agent.id
-                m.type = BlackStack::Scraper::Movement::TYPE_EARNING
-                m.amount = user_agent.scraper_ppp
-                m.save
+                if earning.nil?
+                    m = BlackStack::Scraper::Movement.new
+                    m.id = guid
+                    m.create_time = now
+                    m.id_page = self.id
+                    m.id_user = user_agent.id
+                    m.type = BlackStack::Scraper::Movement::TYPE_EARNING
+                    m.amount = user_agent.scraper_ppp
+                    m.save
+                end
                 # update the user stats
                 user_agent.update_stats
             end

@@ -28,7 +28,7 @@ begin
     page.upload_end_time = now
     page.save
     # update user.scraper_stat_total_pages stat
-    BlackStack::Scraper::User.where(:id=>page.order.id_user).update_stats
+    BlackStack::Scraper::User.where(:id=>page.order.id_user).first.update_stats
     # return
     return_message[:status] = 'success'
 rescue => e

@@ -28,7 +28,7 @@ async function scroll_and_get_html(steps=21, step_length=1000, delay_between_ste
     while (i < steps) {
         // This code works on sales navigator only
         //window.scrollTo(0, step_length*i);
-        window.document.getElementById('search-results-container').scroll(0,1000);
+        window.document.getElementById('search-results-container').scroll(0,step_length*i);
         i++;
         await new Promise(r => setTimeout(r, delay_between_steps));
     };

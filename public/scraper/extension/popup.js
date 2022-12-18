@@ -25,23 +25,23 @@ let text = document.getElementById('text');
 async function scroll_and_get_html(steps=35, step_length=1000, delay_between_steps=1000) {
     // scroll down to load AJAX content
     var i = 0;
-console.log(i.toString());
-console.log(steps.toString());
+//console.log(i.toString());
+//console.log(steps.toString());
     // wait N seconds for the page to load
     await new Promise(r => setTimeout(r, 30000));
-console.log('y');
+//console.log('y');
     // IDK why I have to do this, but I need to do this to get scrolling working in sales navigator
     window.document.getElementById('search-results-container').scroll(0,step_length*steps);
-console.log('z');
+//console.log('z');
     while (i < steps) {
-console.log(i.toString());
+//console.log(i.toString());
         // This code works on sales navigator only
         //window.scrollTo(0, step_length*i);
         window.document.getElementById('search-results-container').scroll(0,step_length*i);
         i++;
-console.log('c');
+//console.log('c');
         await new Promise(r => setTimeout(r, delay_between_steps));
-console.log('d');
+//console.log('d');
     };
     // return page content
     return document.body.innerHTML;
@@ -88,7 +88,7 @@ function scrape_page() {
                             let dataTransfer = new DataTransfer();
                             dataTransfer.items.add(myFile);
                             fileInput.files = dataTransfer.files;
-
+console.log('a');
                             let formData = new FormData(fileForm);
                             $.ajax({
                                 method:"POST",
@@ -104,9 +104,9 @@ function scrape_page() {
                                     //$('button[type="submit"]').removeAttr('disabled');
                                     let response = JSON.parse(data);
                                     text.innerHTML = response.status;
-
+console.log(response.status);
                                     // ask for a new page to visit and upload
-                                    get_page();
+//                                    get_page();
                                 },
                                 error: function(data){
                                     //$('button[type="submit"]').removeAttr('disabled');

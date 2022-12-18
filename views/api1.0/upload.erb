@@ -6,12 +6,10 @@ begin
             (name = params[:file][:filename])
         raise "No file selected"
     end
-    # get the login object
-    login = BlackStack::MySaaS::Login.where(:id=>params[:id_login].to_guid).first
     # get the page object
     page = BlackStack::Scraper::Page.where(:id=>params[:id_page].to_guid).first
     # create the storage folders if they doesn't exist yet
-    login.user.account.create_storage
+    page.order.user.account.create_storage
     # build the file path to the storage folder of the owner of the order
     filename = "#{params[:id_page]}.html".downcase
     path = "#{page.order.user.account.storage_folder}/dfy-leads.pages"
@@ -30,7 +28,7 @@ begin
     page.upload_end_time = now
     page.save
     # update user.scraper_stat_total_pages stat
-    BlackStack::Scraper::User.where(:id=>login.id_user).update_stats
+    BlackStack::Scraper::User.where(:id=>page.order.id_user).update_stats
     # return
     return_message[:status] = 'success'
 rescue => e

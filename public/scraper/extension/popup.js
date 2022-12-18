@@ -22,11 +22,13 @@ let text = document.getElementById('text');
 // steps: how many times to scroll down
 // steps_length: how many pixels each step
 // delay_between_steps: how many milliseconds to wait between each step
-async function scroll_and_get_html(steps=50, step_length=1000, delay_between_steps=1000) {
+async function scroll_and_get_html(steps=21, step_length=1000, delay_between_steps=1000) {
     // scroll down to load AJAX content
     var i = 0;
     while (i < steps) {
-        window.scrollTo(0, step_length*i);
+        // This code works on sales navigator only
+        //window.scrollTo(0, step_length*i);
+        window.document.getElementById('search-results-container').scroll(0,1000);
         i++;
         await new Promise(r => setTimeout(r, delay_between_steps));
     };

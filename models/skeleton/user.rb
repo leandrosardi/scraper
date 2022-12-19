@@ -194,7 +194,7 @@ module BlackStack
             # update scraper_stat_total_pages, scraper_stat_total_earnings, scraper_stat_total_payouts
             def update_stats
                 # total pages
-                a = BlackStack::Scraper::Page.where(:parse_reservation_id=>self.email, :parse_success=>true).count
+                a = BlackStack::Scraper::Movement.where(:id_user=>self.id, :type=>BlackStack::Scraper::Movement::TYPE_EARNING).count.to_i
                 # total earnings
                 b = BlackStack::Scraper::Movement.where(:id_user=>self.id, :type=>BlackStack::Scraper::Movement::TYPE_EARNING).sum(:amount).to_f
                 # total payouts

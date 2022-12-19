@@ -117,7 +117,7 @@ module BlackStack
                 return if self.parse_success.nil? #|| self.parse_success == false
                 # get the users
                 user_owner = self.order.user
-                user_agent = BlackStack::Scraper::User.where(:email=>self.upload_reservation_id).first 
+                user_agent = BlackStack::Scraper::Assignation.where(:id_page=>self.id).order(:create_time).last.user 
                 # user owner and agent must be belonging different accounts
                 return if user_owner.id_account.to_guid == user_agent.id_account.to_guid
                 # must not be an earning already registered for this page

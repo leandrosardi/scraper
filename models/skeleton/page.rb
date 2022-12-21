@@ -114,7 +114,7 @@ module BlackStack
             def apply_earnings
                 # page must have been uplaoded and parsed successfully
                 return if self.upload_success.nil? || self.upload_success == false
-                return if self.parse_success.nil? #|| self.parse_success == false
+                return if self.parse_success.nil? || self.parse_success == false
                 # get the users
                 user_owner = self.order.user
                 user_agent = BlackStack::Scraper::Assignation.where(:id_page=>self.id).order(:create_time).last.user 

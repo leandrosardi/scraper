@@ -92,6 +92,6 @@ alter table "user" add column if not exists stealth_default_seconds_between_page
 alter table "user" add column if not exists stealth_default_max_pages_per_hour int not null default 120;
 alter table "user" add column if not exists stealth_default_max_pages_per_day int not null default 1000;
 
-ALTER TABLE "user" ALTER COLUMN stealth_default_seconds_between_pages set default 45; 
-ALTER TABLE "user" ALTER COLUMN stealth_default_max_pages_per_hour set default 10; 
-ALTER TABLE "user" ALTER COLUMN stealth_default_max_pages_per_day set default 250; 
+ALTER TABLE "user" ALTER COLUMN stealth_default_seconds_between_pages set default 120; 
+ALTER TABLE "user" ALTER COLUMN stealth_default_max_pages_per_hour set default 20; 
+ALTER TABLE "user" ALTER COLUMN stealth_default_max_pages_per_day set default 100; 

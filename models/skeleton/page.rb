@@ -3,6 +3,10 @@ module BlackStack
         class Page < Sequel::Model(:scr_page)
             many_to_one :order, :class=>:'BlackStack::Scraper::Order', :key=>:id_order
             
+            # if a page is not uploaded in 15 minutes, then it is considered as abandoned.
+            # abandoned means: the user is not longer active, or something happened.
+            MAX_MINUTES_TO_WAIT_FOR_UPLOAD = 15
+
             # trigger
             def after_update
                 super
@@ -46,6 +50,9 @@ module BlackStack
             # find pages assigned (`upload_reservation_id`), 
             # 5 minutes ago (`upload_reservation_time`) or 
             # earlier, but not finished yet (`upload_end_time`).
+            #
+            # TODO: 5 minutes is hardcoded. It should be a parameter, depending on the user's stealth configuration.
+            # 
             def self.abandoned(limit=-1)
                 ret = []
                 # build the query
@@ -54,7 +61,7 @@ module BlackStack
                 from scr_page p
                 where
                     upload_reservation_id is not null and
-                    upload_reservation_time < cast('#{now}' as timestamp) - interval '5 minutes' and
+                    upload_reservation_time < cast('#{now}' as timestamp) - interval '#{MAX_MINUTES_TO_WAIT_FOR_UPLOAD.to_s} minutes' and
                     upload_end_time is null
                 "
                 q += "limit #{limit}" if limit > 0

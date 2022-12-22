@@ -13,12 +13,16 @@ module BlackStack
             #
             def self.online_users(limit=-1)
                 ret = []
-                DB["
-                    SELECT u.id 
+                q = "
+                    SELECT u.id, max(a.create_time) as last_assignation_time
                     FROM \"user\" u
+                    LEFT JOIN scr_assignation a on u.id=a.id_user
                     WHERE u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '1 minutes'
                     AND u.scraper_share = true
-                "].all { |row| 
+                    GROUP BY u.id
+                    ORDER BY last_assignation_time ASC
+                "
+                DB[q].all { |row| 
                     # add object to array
                     u = BlackStack::Scraper::User.where(:id=>row[:id]).first
                     ret << u if u.available_for_assignation?
@@ -40,12 +44,16 @@ module BlackStack
             # 
             def online_users(limit=-1)
                 ret = []
-                DB["
-                    SELECT u.id 
+                q = "
+                    SELECT u.id, max(a.create_time) as last_assignation_time
                     FROM \"user\" u
+                    LEFT JOIN scr_assignation a on u.id=a.id_user
                     WHERE u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '1 minutes'
                     AND u.id_account = '#{self.id_account.to_guid}'
-                "].all { |row| 
+                    GROUP BY u.id
+                    ORDER BY last_assignation_time ASC
+                "
+                DB[q].all { |row| 
                     # add object to array
                     u = BlackStack::Scraper::User.where(:id=>row[:id]).first
                     ret << u if u.available_for_assignation?
@@ -141,7 +149,7 @@ module BlackStack
                 # return
                 return 'daily quota reached' if total_24 >= self.stealth_default_max_pages_per_day
                 return 'hourly quota reached' if total >= self.stealth_default_max_pages_per_hour
-                return 'delay between pages not reached' if seconds < self.stealth_default_seconds_between_pages + rand(user.stealth_default_random_additional_seconds_between_pages)
+                return 'delay between pages not reached' if seconds < self.stealth_default_seconds_between_pages + rand(self.stealth_default_random_additional_seconds_between_pages)
             end
 
             # return true if the user is available for assinging a page, 

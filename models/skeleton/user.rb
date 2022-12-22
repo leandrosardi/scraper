@@ -6,8 +6,7 @@ module BlackStack
             one_to_many :orders, :class=>:'BlackStack::Scraper::Order', :key=>:id_user
 
             # return array of of BlackStack::Scraper::User objects 
-            # who are running the extension right now, and who are
-            # sharing their extension with other accounts.
+            # who are running the extension right now.
             #
             # if limit > 0, return only the first `limit` users.
             #
@@ -24,7 +23,68 @@ module BlackStack
                 "
                 DB[q].all { |row| 
                     # add object to array
+                    u = BlackStack::Scraper::User.where(:id=>row[:id]).first    
+                    ret << u #if u.available_for_assignation?
+                    # break if limit reached
+                    break if limit > 0 and ret.length >= limit
+                    # release resources
+                    GC.start
+                    DB.disconnect
+                }
+                ret
+            end
+
+            # return array of of BlackStack::Scraper::User objects 
+            # all belonging the account of this user, and 
+            # who are running the extension right now.
+            #
+            # if limit > 0, return only the first `limit` users.
+            # 
+            def online_users(limit=-1)
+                ret = []
+                q = "
+                    SELECT u.id, max(a.create_time) as last_assignation_time
+                    FROM \"user\" u
+                    LEFT JOIN scr_assignation a on u.id=a.id_user
+                    WHERE u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '1 minutes'
+                    AND u.id_account = '#{self.id_account.to_guid}'
+                    GROUP BY u.id
+                    ORDER BY last_assignation_time ASC
+                "
+                DB[q].all { |row| 
+                    # add object to array
                     u = BlackStack::Scraper::User.where(:id=>row[:id]).first
+                    ret << u #if u.available_for_assignation?
+                    # break if limit reached
+                    break if limit > 0 and ret.length >= limit
+                    # release resources
+                    GC.start
+                    DB.disconnect
+                }
+                ret
+            end
+
+
+            # return array of of BlackStack::Scraper::User objects 
+            # who are running the extension right now, and who are
+            # sharing their extension with other accounts.
+            #
+            # if limit > 0, return only the first `limit` users.
+            #
+            def self.available_users(limit=-1)
+                ret = []
+                q = "
+                    SELECT u.id, max(a.create_time) as last_assignation_time
+                    FROM \"user\" u
+                    LEFT JOIN scr_assignation a on u.id=a.id_user
+                    WHERE u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '1 minutes'
+                    AND u.scraper_share = true
+                    GROUP BY u.id
+                    ORDER BY last_assignation_time ASC
+                "
+                DB[q].all { |row| 
+                    # add object to array
+                    u = BlackStack::Scraper::User.where(:id=>row[:id]).first    
                     ret << u if u.available_for_assignation?
                     # break if limit reached
                     break if limit > 0 and ret.length >= limit
@@ -42,7 +102,7 @@ module BlackStack
             #
             # if limit > 0, return only the first `limit` users.
             # 
-            def online_users(limit=-1)
+            def available_users(limit=-1)
                 ret = []
                 q = "
                     SELECT u.id, max(a.create_time) as last_assignation_time

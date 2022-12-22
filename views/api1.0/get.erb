@@ -25,7 +25,7 @@ begin
         :upload_reservation_id=>user.email, 
         :upload_start_time=>nil, 
         :upload_end_time=>nil
-    ).order(:create_time)
+    ).order(:create_time).first
     raise 'No pages assigned. Retry in few seconds.' if p.nil?
     # update page upload_start_time
     p.upload_start_time = now

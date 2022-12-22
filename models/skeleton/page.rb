@@ -29,6 +29,7 @@ module BlackStack
                     upload_reservation_id is null and
                     coalesce(upload_success,false)=false and 
                     coalesce(upload_reservation_times,0)<5
+                order by p.create_time -- https://github.com/leandrosardi/scraper/issues/24
                 "
                 q += "limit #{limit}" if limit > 0                
                 # load the object

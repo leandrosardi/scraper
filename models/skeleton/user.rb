@@ -141,7 +141,7 @@ module BlackStack
                 # return
                 return 'daily quota reached' if total_24 >= self.stealth_default_max_pages_per_day
                 return 'hourly quota reached' if total >= self.stealth_default_max_pages_per_hour
-                return 'delay between pages not reached' if seconds < self.stealth_default_seconds_between_pages
+                return 'delay between pages not reached' if seconds < self.stealth_default_seconds_between_pages + rand(user.stealth_default_random_additional_seconds_between_pages)
             end
 
             # return true if the user is available for assinging a page, 
@@ -153,6 +153,18 @@ module BlackStack
                 self.why_not_available_for_assignation.nil?
             end
 
+            # return on if the user's extension is active right now.
+            def online?
+                return false if self.scraper_last_ping_time.nil?
+                return true if DB["
+                    SELECT COUNT(*) 
+                    FROM \"user\" u
+                    WHERE u.id='#{self.id}' 
+                    AND u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '1 minutes'
+                "].first[:count].to_i > 0  
+                return false
+            end
+
             # status of the user's extension
             # return `not installed` if the field `scraper_last_ping_time` is nil
             # return 'on' if difference between the function `now` and the field `scraper_last_ping_time` is lower than 1 minutes
@@ -160,14 +172,10 @@ module BlackStack
             # 
             def status_label
                 return 'not installed' if self.scraper_last_ping_time.nil?
-                return 'on' if DB["
-                    SELECT COUNT(*) 
-                    FROM \"user\" u
-                    WHERE u.id='#{self.id}' 
-                    AND u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '1 minutes'
-                "].first[:count].to_i > 0  
+                return 'on' if self.online?
                 return 'off'
             end
+
 
             # return a color to show the status of the user's extension
             def status_color

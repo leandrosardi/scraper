@@ -19,12 +19,13 @@ begin
     # check if user is avaiable for working based on its stealth configuration
     s = scraper_user.why_not_available_for_assignation
     raise s if s
-    # get a job
+    # get a page to visit
+    # https://github.com/leandrosardi/scraper/issues/24 - get the pages in order
     p = BlackStack::Scraper::Page.where(
         :upload_reservation_id=>user.email, 
         :upload_start_time=>nil, 
         :upload_end_time=>nil
-    ).first
+    ).order(:create_time)
     raise 'No pages assigned. Retry in few seconds.' if p.nil?
     # update page upload_start_time
     p.upload_start_time = now

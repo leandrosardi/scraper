@@ -95,3 +95,5 @@ alter table "user" add column if not exists stealth_default_max_pages_per_day in
 ALTER TABLE "user" ALTER COLUMN stealth_default_seconds_between_pages set default 120; 
 ALTER TABLE "user" ALTER COLUMN stealth_default_max_pages_per_hour set default 20; 
 ALTER TABLE "user" ALTER COLUMN stealth_default_max_pages_per_day set default 100; 
+
+alter table "user" add column if not exists stealth_default_random_additional_seconds_between_pages int not null default 20;

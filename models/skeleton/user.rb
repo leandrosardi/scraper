@@ -206,10 +206,16 @@ module BlackStack
                     :id_user=>self.id,
                     :create_time=>(now - 86400)..now
                 ).count
+                # existing pages assigned to this user who are pending of processing
+                pendings = BlackStack::Scraper::Page.where(
+                    :upload_reservation_id => self.email,
+                    :upload_end_time => nil
+                ).count
                 # return
                 return 'daily quota reached' if total_24 >= self.stealth_default_max_pages_per_day
                 return 'hourly quota reached' if total >= self.stealth_default_max_pages_per_hour
                 return 'delay between pages not reached' if seconds < self.stealth_default_seconds_between_pages + rand(self.stealth_default_random_additional_seconds_between_pages)
+                return 'user already have pending pages' if pendings > 0
             end
 
             # return true if the user is available for assinging a page, 

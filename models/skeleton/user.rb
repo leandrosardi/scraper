@@ -216,6 +216,7 @@ module BlackStack
                 return 'hourly quota reached' if total >= self.stealth_default_max_pages_per_hour
                 return 'delay between pages not reached' if seconds < self.stealth_default_seconds_between_pages + rand(self.stealth_default_random_additional_seconds_between_pages)
                 return 'user already have pending pages' if pendings > 0
+                return nil
             end
 
             # return true if the user is available for assinging a page, 
@@ -234,7 +235,7 @@ module BlackStack
                     SELECT COUNT(*) 
                     FROM \"user\" u
                     WHERE u.id='#{self.id}' 
-                    AND u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '1 minutes'
+                    AND u.scraper_last_ping_time > CAST('#{now()}' AS TIMESTAMP) - INTERVAL '#{BlackStack::DfyLeads::Page::MAX_MINUTES_TO_WAIT_FOR_UPLOAD} minutes'
                 "].first[:count].to_i > 0  
                 return false
             end

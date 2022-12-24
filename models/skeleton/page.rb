@@ -18,35 +18,7 @@ module BlackStack
                 super
                 self.apply_earnings
             end
-
-            # get the pages with an URL assigned 
-            # and pending for visit/upload, with 
-            # a try time lower than 5.
-            def self.pendings(limit=-1, max_tries=5)
-                ret = []
-                # build the query
-                q = "
-                select p.id
-                from scr_page p
-                join scr_order o on (o.id=p.id_order and o.url is not null and o.status=true)
-                where
-                    upload_reservation_id is null and
-                    coalesce(upload_success,false)=false and 
-                    coalesce(upload_reservation_times,0)<5
-                order by p.create_time -- https://github.com/leandrosardi/scraper/issues/24
-                "
-                q += "limit #{limit}" if limit > 0                
-                # load the object
-                DB[q].all { |r| 
-                    ret << BlackStack::DfyLeads::Page.where(:id=>r[:id]).first
-                    # release resources
-                    GC.start
-                    DB.disconnect
-                }
-                # return
-                ret
-            end
-
+            
             # find pages assigned (`upload_reservation_id`), 
             # 5 minutes ago (`upload_reservation_time`) or 
             # earlier, but not finished yet (`upload_end_time`).

@@ -22,7 +22,7 @@ let text = document.getElementById('text');
 // steps: how many times to scroll down
 // steps_length: how many pixels each step
 // delay_between_steps: how many milliseconds to wait between each step
-async function scroll_and_get_html(steps=35, step_length=1000, delay_between_steps=1000) {
+async function scroll_and_get_html(steps=350, step_length=100, delay_between_steps=100) {
     // scroll down to load AJAX content
     var i = 0;
 //console.log(i.toString());

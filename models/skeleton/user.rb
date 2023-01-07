@@ -207,7 +207,7 @@ module BlackStack
                     :create_time=>(now - 86400)..now
                 ).count
                 # existing pages assigned to this user who are pending of processing
-                pendings = BlackStack::Scraper::Page.where(
+                pendings = BlackStack::Scraper::Page.select(:id).where(
                     :upload_reservation_id => self.email,
                     :upload_end_time => nil
                 ).count

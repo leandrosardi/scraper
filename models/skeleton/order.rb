@@ -31,7 +31,7 @@ module BlackStack
                 q += "limit #{limit}" if limit > 0                
                 # load the object
                 DB[q].all { |r| 
-                    ret << BlackStack::DfyLeads::Page.where(:id=>r[:id]).first
+                    ret << BlackStack::DfyLeads::Page.select(:id, :number, :id_order).where(:id=>r[:id]).first
                     # release resources
                     GC.start
                     DB.disconnect

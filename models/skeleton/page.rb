@@ -39,7 +39,7 @@ module BlackStack
                 q += "limit #{limit}" if limit > 0
                 # load the object
                 DB[q].all { |r|
-                    ret << BlackStack::Scraper::Page.where(:id=>r[:id]).first
+                    ret << BlackStack::Scraper::Page.select(:id, :number, :id_order).where(:id=>r[:id]).first
                     # release resources
                     GC.start
                     DB.disconnect
@@ -50,11 +50,7 @@ module BlackStack
 
             # reset upload reservation flags
             def relaunch()
-                self.upload_reservation_id = nil
-                self.upload_reservation_time = nil
-                self.upload_start_time = nil
-                self.upload_end_time = nil            
-                self.save
+                DB.execute("UPDATE scr_page SET upload_reservation_id = NULL, upload_reservation_time = NULL, upload_start_time = NULL, upload_end_time = NULL WHERE id = '#{self.id}'")
             end
 
             # assign this page to a user
